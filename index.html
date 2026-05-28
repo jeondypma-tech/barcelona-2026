@@ -329,6 +329,62 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="modal-actions"><button class="btn" onclick="closeModal('schedule')">취소</button><button class="btn btn-accent" onclick="addSchedule()">추가</button></div>
 </div></div>
 
+<!-- 일정 편집 -->
+<div class="modal-overlay" id="modal-editSchedule"><div class="modal">
+  <div class="modal-title">일정 수정</div>
+  <input type="hidden" id="es-idx">
+  <div class="fg"><label class="fl">날짜</label>
+    <select class="fc" id="es-day">
+      <option value="0">토 (도착일)</option><option value="1">일</option><option value="2">월</option>
+      <option value="3">화</option><option value="4">수</option><option value="5">목</option>
+      <option value="6">금</option><option value="7">토 (출발일)</option>
+    </select>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">시간</label><input class="fc" type="time" id="es-time"></div>
+    <div class="fg"><label class="fl">구분</label>
+      <select class="fc" id="es-type"><option>관광</option><option>식사</option><option>이동</option><option>투어</option><option>쇼핑</option><option>기타</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">장소 / 활동</label><input class="fc" type="text" id="es-title"></div>
+  <div class="fg"><label class="fl">지도 장소명</label><input class="fc" type="text" id="es-place"></div>
+  <div class="fg"><label class="fl">메모</label><input class="fc" type="text" id="es-note"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">비용 EUR (2인 합산)</label><input class="fc" type="number" id="es-cost"></div>
+    <div class="fg"><label class="fl">비용 KRW (2인 합산)</label><input class="fc" type="number" id="es-cost-krw"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">지출 카테고리</label>
+      <select class="fc" id="es-cat"><option value="">— 지출 없음 —</option><option>교통</option><option>투어·입장료</option><option>식비</option><option>숙박</option><option>쇼핑</option><option>기타</option><option>USD</option></select>
+    </div>
+    <div class="fg"><label class="fl">지출 주체</label>
+      <select class="fc" id="es-who"><option value="공통">🤝 공통</option><option value="다영">👤 다영</option><option value="수연">👤 수연</option></select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">예약 링크</label><input class="fc" type="text" id="es-link"></div>
+    <div class="fg"><label class="fl">상태</label>
+      <select class="fc" id="es-status"><option value="예정">예정</option><option value="지출 완료">지출 완료</option></select>
+    </div>
+  </div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('editSchedule')">취소</button><button class="btn btn-accent" onclick="saveEditSchedule()">저장</button></div>
+</div></div>
+
+<!-- 환전 기록 -->
+<div class="modal-overlay" id="modal-exchange"><div class="modal">
+  <div class="modal-title">💶 환전 기록 추가</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">EUR 금액</label><input class="fc" type="number" id="ex-eur" placeholder="200"></div>
+    <div class="fg"><label class="fl">KRW 금액 (실제 낸 돈)</label><input class="fc" type="number" id="ex-krw" placeholder="354000"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">날짜</label><input class="fc" type="date" id="ex-date"></div>
+    <div class="fg"><label class="fl">메모 (선택)</label><input class="fc" type="text" id="ex-note" placeholder="예) 공항 환전소"></div>
+  </div>
+  <div style="margin-top:6px;font-size:11px;color:var(--text3)" id="ex-rate-preview"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('exchange')">취소</button><button class="btn btn-accent" onclick="addExchange()">추가</button></div>
+</div></div>
+
 <!-- 동선 -->
 <div class="modal-overlay" id="modal-route"><div class="modal">
   <div class="modal-title">동선 추가</div>
@@ -398,9 +454,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="fg"><label class="fl">✈ 항공 (KRW · 1인)</label><input class="fc" type="number" id="cfg-flightKrw" placeholder="1517900"></div>
   </div>
   <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:10px;font-size:11px;font-weight:600;color:var(--text2);">🤝 공통 걷은 돈</div>
+  <div style="font-size:11px;color:var(--text3);margin-bottom:8px">환전할 때마다 아래 버튼으로 기록하면 자동 합산돼요</div>
+  <button class="btn btn-accent" style="width:100%;margin-bottom:8px" onclick="closeModal('setBudget');setTimeout(()=>{initExchangeModal();openModal('exchange');},150)">+ 환전 기록 추가</button>
+  <div id="exchange-list-modal" style="margin-bottom:8px"></div>
   <div class="fr">
-    <div class="fg"><label class="fl">💶 EUR 걷은 돈 (환전액)</label><input class="fc" type="number" id="cfg-common" placeholder="698"></div>
-    <div class="fg"><label class="fl">💴 KRW 걷은 돈 (원화)</label><input class="fc" type="number" id="cfg-commonKrw" placeholder="180000"></div>
+    <div class="fg"><label class="fl">💶 EUR 걷은 돈 (직접 입력도 가능)</label><input class="fc" type="number" id="cfg-common" placeholder="698"></div>
+    <div class="fg"><label class="fl">💴 KRW 걷은 돈</label><input class="fc" type="number" id="cfg-commonKrw" placeholder="1200000"></div>
   </div>
   <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:10px;font-size:11px;font-weight:600;color:var(--text2);">👤 개인 예산</div>
   <div class="fr">
@@ -944,6 +1003,7 @@ function renderSchedule(){
               ${item.link?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none">🔗 예약</a>`:''}
             </div>
           </div>
+          <button class="btn btn-sm" onclick="openEditSchedule(${data.schedule.indexOf(item)})" style="font-size:11px;padding:3px 7px">✏️</button>
           <button class="btn btn-sm btn-danger" onclick="delSchedule(${data.schedule.indexOf(item)})">✕</button>
         </div>
       </div>`;
@@ -1207,6 +1267,20 @@ function openModal(type){
     document.getElementById('cfg-sooyeonKrw').value=data.cfg.sooyeonKrw||0;
     document.getElementById('cfg-hotelKrw').value=data.cfg.hotelKrw||0;
     document.getElementById('cfg-flightKrw').value=data.cfg.flightKrw||0;
+    // 환전 내역 렌더링
+    const exList=document.getElementById('exchange-list-modal');
+    if(exList){
+      const exchanges=data.exchanges||[];
+      if(exchanges.length===0){
+        exList.innerHTML='<div style="font-size:11px;color:var(--text3)">환전 기록 없음</div>';
+      } else {
+        exList.innerHTML=exchanges.map((x,i)=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--border);font-size:11.5px">
+            <span style="flex:1">€${x.eur} = ₩${x.krw.toLocaleString()} <span style="color:var(--text3)">(₩${x.rate.toLocaleString()}/€) ${x.date} ${x.note||''}</span></span>
+            <button class="btn btn-sm btn-danger" onclick="delExchange(${i})">✕</button>
+          </div>`).join('');
+      }
+    }
   }
   document.getElementById('modal-'+type).classList.add('open');
 }
@@ -1247,7 +1321,79 @@ function addSchedule(){
   currentDay=it.day;renderDayTabs();renderSchedule();renderBar();
   ['s-title','s-place','s-note','s-cost','s-cost-krw','s-link'].forEach(id=>document.getElementById(id).value='');
 }
-function delSchedule(idx){if(!confirm('삭제할까요?'))return;data.schedule.splice(idx,1);save();renderSchedule();}
+function openEditSchedule(idx){
+  const s=data.schedule[idx];
+  document.getElementById('es-idx').value=idx;
+  document.getElementById('es-day').value=s.day;
+  document.getElementById('es-time').value=s.time;
+  document.getElementById('es-type').value=s.type;
+  document.getElementById('es-title').value=s.title;
+  document.getElementById('es-place').value=s.place||'';
+  document.getElementById('es-note').value=s.note||'';
+  document.getElementById('es-cost').value=s.cost||0;
+  document.getElementById('es-cost-krw').value=s.costKrw||0;
+  document.getElementById('es-cat').value=s.cat||'';
+  document.getElementById('es-who').value=s.who||'공통';
+  document.getElementById('es-link').value=s.link||'';
+  document.getElementById('es-status').value=s.status||'예정';
+  openModal('editSchedule');
+}
+function saveEditSchedule(){
+  const idx=+document.getElementById('es-idx').value;
+  data.schedule[idx]={
+    ...data.schedule[idx],
+    day:+document.getElementById('es-day').value,
+    time:document.getElementById('es-time').value,
+    type:document.getElementById('es-type').value,
+    title:document.getElementById('es-title').value.trim(),
+    place:document.getElementById('es-place').value.trim(),
+    note:document.getElementById('es-note').value.trim(),
+    cost:+document.getElementById('es-cost').value||0,
+    costKrw:+document.getElementById('es-cost-krw').value||0,
+    cat:document.getElementById('es-cat').value||'',
+    who:document.getElementById('es-who').value||'공통',
+    link:document.getElementById('es-link').value.trim(),
+    status:document.getElementById('es-status').value,
+  };
+  save();closeModal('editSchedule');
+  renderDayTabs();renderSchedule();renderBar();renderBudget();
+}
+
+// 환전 기록
+function initExchangeModal(){
+  document.getElementById('ex-date').value=new Date().toISOString().slice(0,10);
+  const eurEl=document.getElementById('ex-eur');
+  const krwEl=document.getElementById('ex-krw');
+  const preview=document.getElementById('ex-rate-preview');
+  function updatePreview(){
+    const e=+eurEl.value;const k=+krwEl.value;
+    if(e>0&&k>0) preview.textContent=`→ 환율 ₩${Math.round(k/e).toLocaleString()}/€`;
+    else preview.textContent='';
+  }
+  eurEl.oninput=updatePreview;krwEl.oninput=updatePreview;
+}
+function addExchange(){
+  const eur=+document.getElementById('ex-eur').value||0;
+  const krw=+document.getElementById('ex-krw').value||0;
+  const date=document.getElementById('ex-date').value;
+  const note=document.getElementById('ex-note').value.trim();
+  if(!eur||!krw)return alert('EUR과 KRW 금액을 입력해 주세요');
+  if(!data.exchanges)data.exchanges=[];
+  data.exchanges.push({eur,krw,date,note,rate:Math.round(krw/eur)});
+  // 걷은돈 자동 합산
+  data.cfg.common=data.exchanges.reduce((s,x)=>s+x.eur,0);
+  data.cfg.commonKrw=data.exchanges.reduce((s,x)=>s+x.krw,0);
+  save();closeModal('exchange');renderBar();renderBudget();
+  ['ex-eur','ex-krw','ex-note'].forEach(id=>document.getElementById(id).value='');
+}
+
+function delExchange(idx){
+  if(!confirm('환전 기록을 삭제할까요?'))return;
+  data.exchanges.splice(idx,1);
+  data.cfg.common=data.exchanges.reduce((s,x)=>s+x.eur,0);
+  data.cfg.commonKrw=data.exchanges.reduce((s,x)=>s+x.krw,0);
+  save();openModal('setBudget');renderBar();renderBudget();
+}if(!confirm('삭제할까요?'))return;data.schedule.splice(idx,1);save();renderSchedule();}
 
 function addRoute(){
   const it={
@@ -1391,6 +1537,11 @@ function importData(e){
 
 /* ════ Init ════ */
 // module 스코프 함수들을 전역으로 노출
+window.openEditSchedule=openEditSchedule;
+window.saveEditSchedule=saveEditSchedule;
+window.addExchange=addExchange;
+window.delExchange=delExchange;
+window.initExchangeModal=initExchangeModal;
 window.selectDay=selectDay;
 window.showSection=showSection;
 window.openModal=openModal;
