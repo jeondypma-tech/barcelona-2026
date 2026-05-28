@@ -401,7 +401,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
     <div class="fg"><label class="fl">👤 수연 개인 (KRW)</label><input class="fc" type="number" id="cfg-sooyeonKrw" placeholder="0"></div>
   </div>
   <div class="modal-actions">
-    <button class="btn btn-danger btn-sm" onclick="if(confirm('모든 데이터를 초기화할까요?')){setDoc(docRef,JSON.parse(JSON.stringify(DEFAULT))).then(()=>location.reload());}">🔄 초기화</button>
+    <button class="btn btn-danger btn-sm" onclick="if(confirm('모든 데이터를 초기화할까요?')){docRef.set(JSON.parse(JSON.stringify(DEFAULT))).then(()=>location.reload());}">🔄 초기화</button>
     <button class="btn" onclick="closeModal('setBudget')">취소</button>
     <button class="btn btn-accent" onclick="saveBudgetCfg()">저장</button>
   </div>
@@ -465,7 +465,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="modal-actions"><button class="btn" onclick="closeModal('restaurant')">취소</button><button class="btn btn-accent" onclick="addRestaurant()">추가</button></div>
 </div></div>
 
-<script type="module">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
 /* ── 상수 ── */
 const DAYS=[
   {label:'토',sub:'도착',note:'인천 11:50 출발 → 바르셀로나 19:10 도착'},
@@ -629,9 +631,6 @@ let restFilter='전체';
 let selectedWho='공통';
 
 /* ════ Firebase 설정 ════ */
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
 const firebaseConfig = {
   apiKey: "AIzaSyA1mRq32zAqcrYUaZmiHHrumwknRoScAoQ",
   authDomain: "barcelona-524cb.firebaseapp.com",
@@ -641,34 +640,32 @@ const firebaseConfig = {
   appId: "1:394795547791:web:06883137d1d5c835ca44fa"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const docRef = doc(db, 'trips', 'barcelona2026');
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const docRef = db.collection('trips').doc('barcelona2026');
 
 // 저장 (디바운스 500ms)
 let saveTimer=null;
 function save(){
   clearTimeout(saveTimer);
   saveTimer=setTimeout(()=>{
-    setDoc(docRef, data).catch(e=>console.error('저장 실패:', e));
+    docRef.set(data).catch(e=>console.error('저장 실패:', e));
   }, 500);
 }
 
 // 실시간 동기화 구독
 function initFirebase(){
-  onSnapshot(docRef, (snap)=>{
-    if(snap.exists()){
+  docRef.onSnapshot((snap)=>{
+    if(snap.exists){
       const remote=snap.data();
       data=remote;
       if(!data.dayMemos)data.dayMemos=['','','','','','','',''];
       renderBar();renderDayTabs();renderSchedule();renderBudget();renderRestaurants();
     } else {
-      // 첫 접속 - DEFAULT 데이터 저장
-      setDoc(docRef, data);
+      docRef.set(data);
     }
   }, (err)=>{
     console.error('Firebase 연결 실패:', err);
-    // 오프라인 fallback - localStorage
     const local=localStorage.getItem('bcn26v1');
     if(local) data=JSON.parse(local);
   });
@@ -1394,7 +1391,7 @@ window.cycleStatus=cycleStatus;
 window.saveMemo=saveMemo;
 window.exportData=exportData;
 window.importData=importData;
-window.setDoc=setDoc;
+window.setDoc=function(ref,d){return ref.set(d);};
 window.docRef=docRef;
 window.DEFAULT=DEFAULT;
 
