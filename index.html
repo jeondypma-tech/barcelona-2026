@@ -1370,6 +1370,34 @@ function importData(e){
 }
 
 /* ════ Init ════ */
+// module 스코프 함수들을 전역으로 노출
+window.selectDay=selectDay;
+window.showSection=showSection;
+window.openModal=openModal;
+window.closeModal=closeModal;
+window.saveBudgetCfg=saveBudgetCfg;
+window.addSchedule=addSchedule;
+window.delSchedule=delSchedule;
+window.addRoute=addRoute;
+window.delRoute=delRoute;
+window.addBudget=addBudget;
+window.delExp=delExp;
+window.toggleStatus=toggleStatus;
+window.openEditExp=openEditExp;
+window.saveEditExp=saveEditExp;
+window.selectWho=selectWho;
+window.selectEditWho=selectEditWho;
+window.addRestaurant=addRestaurant;
+window.delRest=delRest;
+window.filterRest=filterRest;
+window.cycleStatus=cycleStatus;
+window.saveMemo=saveMemo;
+window.exportData=exportData;
+window.importData=importData;
+window.setDoc=setDoc;
+window.docRef=docRef;
+window.DEFAULT=DEFAULT;
+
 renderBar();
 renderDayTabs();
 renderSchedule();
