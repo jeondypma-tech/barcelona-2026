@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바르셀로나 여행 플래너 🇪🇸</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F5F0;--surface:#FFF;--surface2:#F0EDE6;--border:#E2DED5;--border2:#CBC7BE;
+  --text:#1A1916;--text2:#6B6860;--text3:#9A978F;
+  --accent:#D85A30;--blue:#185FA5;--teal:#0F6E56;--purple:#534AB7;--red:#A32D2D;--amber:#BA7517;
+  --radius:10px;--radius-sm:6px;
+  --bar-h:90px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;}
+
+/* ── 상단 고정 예산 바 ── */
+#budget-bar{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:10px 20px 8px;
+}
+.bar-inner{display:flex;align-items:stretch;gap:0;}
+.bar-block{
+  display:flex;flex-direction:column;justify-content:center;
+  padding:0 18px;border-right:1px solid var(--border);min-width:0;
+}
+.bar-block:first-child{padding-left:0;}
+.bar-block:last-child{border-right:none;padding-right:0;}
+.bar-label{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:1px;white-space:nowrap;}
+.bar-val{font-size:17px;font-weight:700;font-family:'DM Mono',monospace;white-space:nowrap;display:flex;align-items:baseline;gap:4px;}
+.bar-val-unit{font-size:11px;font-weight:400;color:var(--text3);}
+.c-common{color:var(--accent);}
+.c-dayoung{color:var(--purple);}
+.c-sooyeon{color:var(--teal);}
+.c-neg{color:var(--red);}
+.bar-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.bar-prog{height:3px;background:var(--surface2);border-radius:2px;margin-top:4px;overflow:hidden;min-width:60px;}
+.bar-prog-fill{height:100%;border-radius:2px;transition:width .3s;}
+.bar-pills{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
+.bar-pill{font-size:9.5px;padding:1px 6px;border-radius:999px;}
+
+/* ── Layout ── */
+.app{display:flex;min-height:100vh;padding-top:var(--bar-h);}
+.sidebar{
+  width:210px;min-width:210px;background:var(--surface);border-right:1px solid var(--border);
+  padding:18px 0;position:sticky;top:var(--bar-h);height:calc(100vh - var(--bar-h));overflow-y:auto;
+}
+.logo-area{padding:0 16px 16px;border-bottom:1px solid var(--border);margin-bottom:10px;}
+.logo{font-size:14px;font-weight:700;}.logo span{color:var(--accent);}
+.logo-sub{font-size:10.5px;color:var(--text3);margin-top:2px;}
+.sidebar-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);padding:0 16px 6px;text-transform:uppercase;}
+.nav-item{
+  display:flex;align-items:center;gap:8px;padding:8px 16px;cursor:pointer;
+  color:var(--text2);font-size:13px;transition:background .12s,color .12s;
+  border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:var(--surface2);color:var(--accent);font-weight:500;border-right:2px solid var(--accent);}
+.sidebar-footer{padding:12px 16px;border-top:1px solid var(--border);margin-top:8px;}
+.main{flex:1;padding:26px;max-width:940px;}
+
+/* ── Sections ── */
+.section{display:none;}.section.active{display:block;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.section-title-main{font-size:18px;font-weight:700;}
+.section-subtitle{font-size:12px;color:var(--text3);margin-top:2px;}
+
+/* ── Buttons ── */
+.btn{
+  padding:7px 13px;border-radius:var(--radius-sm);border:1px solid var(--border2);
+  background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;
+  font-family:inherit;transition:all .12s;display:inline-flex;align-items:center;gap:4px;
+}
+.btn:hover{background:var(--surface2);}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-accent:hover{background:#C04E28;}
+.btn-sm{padding:4px 9px;font-size:11.5px;}
+.btn-danger{background:#FCF0F0;color:var(--red);border-color:#F7C1C1;}
+.btn-danger:hover{background:#F7C1C1;}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+
+/* ── Tags ── */
+.tag{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10.5px;background:#EEF3F9;color:var(--blue);}
+.tag-amber{background:#FEF3E2;color:#854F0B;}
+.tag-teal{background:#E1F5EE;color:var(--teal);}
+.tag-coral{background:#FAECE7;color:#993C1D;}
+.tag-purple{background:#EEEDFE;color:var(--purple);}
+.tag-gray{background:var(--surface2);color:var(--text2);}
+
+/* ── Who badge ── */
+.who-b{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:500;}
+.who-common{background:#FAECE7;color:#993C1D;}
+.who-dayoung{background:#EEEDFE;color:var(--purple);}
+.who-sooyeon{background:#E1F5EE;color:var(--teal);}
+
+/* ── Who selector (modal) ── */
+.who-sel{display:flex;gap:6px;}
+.who-opt{
+  flex:1;padding:8px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--border);
+  background:var(--surface);cursor:pointer;text-align:center;font-size:12.5px;
+  transition:all .12s;font-family:inherit;color:var(--text2);
+}
+.sel-common{border-color:var(--accent);background:#FAECE7;color:#993C1D;font-weight:500;}
+.sel-dayoung{border-color:var(--purple);background:#EEEDFE;color:var(--purple);font-weight:500;}
+.sel-sooyeon{border-color:var(--teal);background:#E1F5EE;color:var(--teal);font-weight:500;}
+
+/* ── Day tabs ── */
+.day-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.day-tab{
+  padding:5px 12px;border-radius:999px;border:1px solid var(--border2);
+  background:var(--surface);font-size:12px;cursor:pointer;transition:all .12s;
+  font-family:inherit;color:var(--text2);
+}
+.day-tab:hover{background:var(--surface2);}
+.day-tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+/* ── Schedule rows ── */
+.sch-row{display:grid;grid-template-columns:66px 1fr auto;gap:10px;align-items:start;padding:8px 0;border-bottom:1px solid var(--border);}
+.sch-row:last-child{border-bottom:none;}
+.time-b{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);padding-top:2px;}
+.sch-title{font-weight:500;font-size:13px;margin-bottom:1px;}
+.sch-note{font-size:11.5px;color:var(--text2);}
+.sch-meta{display:flex;gap:5px;margin-top:3px;flex-wrap:wrap;}
+
+/* ── Route ── */
+.r-day-hdr{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin:16px 0 7px;}
+.r-step{display:flex;align-items:flex-start;gap:9px;padding:7px 0;position:relative;}
+.r-step::before{content:'';position:absolute;left:13px;top:26px;bottom:-7px;width:1px;background:var(--border);}
+.r-step:last-child::before{display:none;}
+.r-dot{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:var(--text2);flex-shrink:0;}
+.r-dot.hi{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* ── Budget summary grid ── */
+.b-sum-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+.bm{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+.bm-label{font-size:10px;color:var(--text3);margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em;}
+.bm-val{font-size:19px;font-weight:700;}
+.bm-sub{font-size:10.5px;color:var(--text2);margin-top:1px;}
+.prog{height:4px;background:var(--surface2);border-radius:2px;margin-top:6px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:2px;transition:width .3s;}
+
+/* ── Expense list ── */
+.exp-item{display:flex;align-items:center;gap:7px;padding:6px 0;border-top:1px solid var(--border);}
+.exp-title{font-size:13px;font-weight:500;}
+.exp-note{font-size:11px;color:var(--text3);}
+.exp-eur{font-size:13px;font-weight:500;text-align:right;min-width:55px;}
+
+/* ── Restaurant ── */
+.rest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;}
+.rest-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;transition:border-color .12s;}
+.rest-card:hover{border-color:var(--border2);}
+.rest-name{font-weight:500;font-size:13.5px;margin-bottom:3px;}
+.rest-info{font-size:11.5px;color:var(--text2);margin-bottom:5px;}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:1000;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-radius:14px;padding:22px 24px;width:450px;max-width:95vw;max-height:88vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:14px;}
+.fg{margin-bottom:11px;}
+.fl{font-size:11px;color:var(--text2);margin-bottom:4px;display:block;}
+.fc{width:100%;padding:7px 10px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-family:inherit;font-size:13px;background:var(--surface);color:var(--text);outline:none;transition:border-color .12s;}
+.fc:focus{border-color:var(--accent);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+/* ── Misc ── */
+.empty-state{text-align:center;padding:36px;color:var(--text3);font-size:13px;}
+.empty-icon{font-size:28px;margin-bottom:6px;}
+.divider{height:1px;background:var(--border);margin:10px 0;}
+
+@media(max-width:680px){
+  :root{--bar-h:72px;}
+  #budget-bar{padding:8px 12px 6px;}
+  .bar-inner{overflow-x:auto;-webkit-overflow-scrolling:touch;gap:0;padding-bottom:4px;scrollbar-width:none;flex-wrap:nowrap;}
+  .bar-inner::-webkit-scrollbar{display:none;}
+  .bar-block{padding:0 12px;min-width:100px;flex-shrink:0;}
+  .bar-block:first-child{padding-left:0;min-width:130px;}
+  .bar-val{font-size:14px;}
+  .bar-pills{display:none;}
+  .app{display:block;padding-top:var(--bar-h);}
+  .sidebar{position:fixed;bottom:0;left:0;right:0;width:100%;height:52px;display:flex;flex-direction:row;border-right:none;border-top:1px solid var(--border);padding:0;z-index:100;background:var(--surface);}
+  .logo-area,.sidebar-lbl,.sidebar-footer{display:none;}
+  .nav-item{flex:1;flex-direction:column;justify-content:center;align-items:center;padding:4px 0;gap:1px;font-size:9px;white-space:nowrap;border-right:1px solid var(--border);border-bottom:none;}
+  .nav-item span:first-child{font-size:17px;line-height:1;}
+  .nav-item.active{border-top:2px solid var(--accent);color:var(--accent);}
+  .nav-item:last-of-type{border-right:none;}
+  .main{padding:12px;max-width:100%;padding-bottom:60px;}
+  .fr{grid-template-columns:1fr;}
+  .card{padding:12px;}
+  .modal{width:calc(100vw - 24px);max-height:85vh;overflow-y:auto;}
+  .per-person-grid{grid-template-columns:1fr!important;}
+  .section-header{flex-wrap:wrap;gap:8px;}
+  .day-tab{padding:4px 10px;font-size:11px;}
+}
+@media(max-width:380px){
+  .bar-block{min-width:88px;}
+  .bar-val{font-size:13px;}
+  .main{padding:8px;padding-bottom:60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ 상단 고정 예산 바 ══ -->
+<div id="budget-bar">
+  <div class="bar-inner" id="bar-inner"></div>
+</div>
+
+<div class="app">
+  <!-- ── Sidebar ── -->
+  <nav class="sidebar">
+    <div class="logo-area">
+      <div class="logo">🇪🇸 <span>BCN</span> 2026</div>
+      <div class="logo-sub">6박 7일 · 다영 &amp; 수연</div>
+    </div>
+    <div class="sidebar-lbl">메뉴</div>
+    <button class="nav-item active" onclick="showSection('schedule',this)"><span>📅</span><span>일정</span></button>
+    <button class="nav-item" onclick="showSection('route',this)"><span>🗺️</span><span>이동동선</span></button>
+    <button class="nav-item" onclick="showSection('budget',this)"><span>💶</span><span>예산·지출</span></button>
+    <button class="nav-item" onclick="showSection('restaurant',this)"><span>🍽️</span><span>음식점</span></button>
+    <div class="sidebar-footer">
+      <button class="btn btn-sm btn-accent" onclick="exportData()" style="width:100%;justify-content:center;margin-bottom:6px;"><span>💾</span><span>저장 (JSON)</span></button>
+      <label class="btn btn-sm" style="width:100%;justify-content:center;cursor:pointer;">
+        <span>📂</span><span>불러오기</span>
+        <input type="file" accept=".json" id="import-input" style="display:none" onchange="importData(event)">
+      </label>
+    </div>
+  </nav>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <!-- ══ 일정 ══ -->
+    <div id="section-schedule" class="section active">
+      <div class="section-header">
+        <div><div class="section-title-main">일정</div><div class="section-subtitle">토요일 도착 → 다음 토요일 출발 · 6박 7일</div></div>
+        <button class="btn btn-accent" onclick="openModal('schedule')">+ 일정 추가</button>
+      </div>
+      <div class="day-tabs" id="day-tabs"></div>
+      <div id="schedule-content"></div>
+    </div>
+
+    <!-- ══ 이동동선 ══ -->
+    <div id="section-route" class="section">
+      <div class="section-header">
+        <div><div class="section-title-main">이동동선</div><div class="section-subtitle">숙소 기준 · Fisa Rentals Gran Vía (에이샴플레)</div></div>
+        <button class="btn btn-accent" onclick="openModal('route')">+ 동선 추가</button>
+      </div>
+      <div id="route-content"></div>
+    </div>
+
+    <!-- ══ 예산·지출 ══ -->
+    <div id="section-budget" class="section">
+      <div class="section-header">
+        <div><div class="section-title-main">예산·지출</div><div class="section-subtitle">공통 환전 €698 · 개인지출 별도 관리</div></div>
+        <div style="display:flex;gap:7px;">
+          <button class="btn btn-sm" onclick="openModal('setBudget')">⚙ 예산 설정</button>
+          <button class="btn btn-accent" onclick="openModal('budget')">+ 지출 추가</button>
+        </div>
+      </div>
+      <div class="b-sum-grid" id="b-sum-grid"></div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-header"><span style="font-size:13px;font-weight:500;">카테고리별 요약</span></div>
+        <div id="cat-summary"></div>
+      </div>
+      <div id="budget-list"></div>
+    </div>
+
+    <!-- ══ 음식점 ══ -->
+    <div id="section-restaurant" class="section">
+      <div class="section-header">
+        <div><div class="section-title-main">음식점</div><div class="section-subtitle">가고 싶은 곳, 다녀온 곳 정리</div></div>
+        <button class="btn btn-accent" onclick="openModal('restaurant')">+ 맛집 추가</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;" id="rest-filters">
+        <button class="btn btn-sm" style="background:var(--surface2)" onclick="filterRest('전체',this)">전체</button>
+        <button class="btn btn-sm" onclick="filterRest('타파스',this)">타파스</button>
+        <button class="btn btn-sm" onclick="filterRest('해산물',this)">해산물</button>
+        <button class="btn btn-sm" onclick="filterRest('카페',this)">카페</button>
+        <button class="btn btn-sm" onclick="filterRest('기타',this)">기타</button>
+      </div>
+      <div class="rest-grid" id="restaurant-content"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══ Modals ══ -->
+
+<!-- 일정 -->
+<div class="modal-overlay" id="modal-schedule"><div class="modal">
+  <div class="modal-title">일정 추가</div>
+  <div class="fg"><label class="fl">날짜</label>
+    <select class="fc" id="s-day">
+      <option value="0">토 (도착일)</option><option value="1">일</option><option value="2">월</option>
+      <option value="3">화</option><option value="4">수</option><option value="5">목</option>
+      <option value="6">금</option><option value="7">토 (출발일)</option>
+    </select>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">시간</label><input class="fc" type="time" id="s-time" value="10:00"></div>
+    <div class="fg"><label class="fl">구분</label>
+      <select class="fc" id="s-type"><option>관광</option><option>식사</option><option>이동</option><option>투어</option><option>쇼핑</option><option>기타</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">장소 / 활동</label><input class="fc" type="text" id="s-title" placeholder="예) 사그라다 파밀리아"></div>
+  <div class="fg"><label class="fl">지도 장소명 (선택 · 지도에 핀 표시용)</label><input class="fc" type="text" id="s-place" placeholder="예) Sagrada Família, Barcelona"></div>
+  <div class="fg"><label class="fl">메모</label><input class="fc" type="text" id="s-note" placeholder="예) 사전 예약 필수"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">예상 비용 EUR (2인)</label><input class="fc" type="number" id="s-cost" placeholder="0"></div>
+    <div class="fg"><label class="fl">예약 링크</label><input class="fc" type="text" id="s-link" placeholder="https://..."></div>
+  </div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('schedule')">취소</button><button class="btn btn-accent" onclick="addSchedule()">추가</button></div>
+</div></div>
+
+<!-- 동선 -->
+<div class="modal-overlay" id="modal-route"><div class="modal">
+  <div class="modal-title">동선 추가</div>
+  <div class="fg"><label class="fl">날짜</label>
+    <select class="fc" id="r-day">
+      <option value="0">토 (도착일)</option><option value="1">일</option><option value="2">월</option>
+      <option value="3">화</option><option value="4">수</option><option value="5">목</option>
+      <option value="6">금</option><option value="7">토 (출발일)</option>
+    </select>
+  </div>
+  <div class="fg"><label class="fl">출발지</label><input class="fc" type="text" id="r-from" placeholder="출발지"></div>
+  <div class="fg"><label class="fl">도착지</label><input class="fc" type="text" id="r-to" placeholder="도착지"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">이동 수단</label>
+      <select class="fc" id="r-transport"><option>🚶 도보</option><option>🚇 지하철</option><option>🚌 버스</option><option>🚆 기차</option><option>🚌 공항버스</option><option>🚕 택시</option><option>🚡 케이블카</option></select>
+    </div>
+    <div class="fg"><label class="fl">소요 시간</label><input class="fc" type="text" id="r-duration" placeholder="예) 35분"></div>
+  </div>
+  <div class="fg"><label class="fl">메모 (비용·주의사항)</label><input class="fc" type="text" id="r-note" placeholder="예) €6.75, 매 10분 간격"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('route')">취소</button><button class="btn btn-accent" onclick="addRoute()">추가</button></div>
+</div></div>
+
+<!-- 지출 추가 -->
+<div class="modal-overlay" id="modal-budget"><div class="modal">
+  <div class="modal-title">지출 추가</div>
+  <div class="fg">
+    <label class="fl">지출 주체</label>
+    <div class="who-sel">
+      <button type="button" class="who-opt sel-common" id="wo-common" onclick="selectWho('공통')">🤝 공통</button>
+      <button type="button" class="who-opt" id="wo-dayoung" onclick="selectWho('다영')">👤 다영</button>
+      <button type="button" class="who-opt" id="wo-sooyeon" onclick="selectWho('수연')">👤 수연</button>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">날짜</label>
+      <select class="fc" id="b-day">
+        <option value="-1">날짜 미정</option><option value="0">토 (도착일)</option><option value="1">일</option>
+        <option value="2">월</option><option value="3">화</option><option value="4">수</option>
+        <option value="5">목</option><option value="6">금</option><option value="7">토 (출발일)</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">카테고리</label>
+      <select class="fc" id="b-cat"><option>교통</option><option>투어·입장료</option><option>식비</option><option>숙박</option><option>쇼핑</option><option>기타</option><option>USD</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">항목명</label><input class="fc" type="text" id="b-title" placeholder="예) 가우디 한국어 투어"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">금액 (EUR)</label><input class="fc" type="number" id="b-eur" placeholder="0" step="0.5"></div>
+    <div class="fg"><label class="fl">금액 (KRW · 원화)</label><input class="fc" type="number" id="b-krw" placeholder="0"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">상태</label>
+      <select class="fc" id="b-status"><option>예정</option><option>지출 완료</option></select>
+    </div>
+    <div class="fg"></div>
+  </div>
+  <div class="fg"><label class="fl">메모 (선택)</label><input class="fc" type="text" id="b-note" placeholder="예) 2인, 현금"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('budget')">취소</button><button class="btn btn-accent" onclick="addBudget()">추가</button></div>
+</div></div>
+
+<!-- 예산 설정 -->
+<div class="modal-overlay" id="modal-setBudget"><div class="modal">
+  <div class="modal-title">예산 설정</div>
+  <div style="font-size:11px;color:var(--text2);margin-bottom:12px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);">EUR = 현지 환전액 · KRW = 한국에서 카드/현금으로 쓰는 금액 (투어비 등)</div>
+  <div class="fr">
+      <div class="fr">
+    <div class="fg"><label class="fl">🏠 숙소 전체 (KRW · 2인)</label><input class="fc" type="number" id="cfg-hotelKrw" placeholder="2702617"></div>
+    <div class="fg"><label class="fl">✈ 항공 (KRW · 1인)</label><input class="fc" type="number" id="cfg-flightKrw" placeholder="1517900"></div>
+  </div>
+  <div class="fg"><label class="fl">🤝 공통 환전액 (EUR)</label><input class="fc" type="number" id="cfg-common" placeholder="698"></div>
+    <div class="fg"><label class="fl">🤝 공통 원화 예산 (KRW)</label><input class="fc" type="number" id="cfg-commonKrw" placeholder="500000"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">👤 다영 개인 (EUR)</label><input class="fc" type="number" id="cfg-dayoung" placeholder="0"></div>
+    <div class="fg"><label class="fl">👤 다영 개인 (KRW)</label><input class="fc" type="number" id="cfg-dayoungKrw" placeholder="0"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">👤 수연 개인 (EUR)</label><input class="fc" type="number" id="cfg-sooyeon" placeholder="0"></div>
+    <div class="fg"><label class="fl">👤 수연 개인 (KRW)</label><input class="fc" type="number" id="cfg-sooyeonKrw" placeholder="0"></div>
+  </div>
+  <div class="modal-actions">
+    <button class="btn btn-danger btn-sm" onclick="if(confirm('모든 데이터를 초기화할까요?')){setDoc(docRef,JSON.parse(JSON.stringify(DEFAULT))).then(()=>location.reload());}">🔄 초기화</button>
+    <button class="btn" onclick="closeModal('setBudget')">취소</button>
+    <button class="btn btn-accent" onclick="saveBudgetCfg()">저장</button>
+  </div>
+</div></div>
+
+<!-- 지출 편집 -->
+<div class="modal-overlay" id="modal-editExp"><div class="modal">
+  <div class="modal-title">지출 수정</div>
+  <input type="hidden" id="edit-idx">
+  <div class="fg">
+    <label class="fl">지출 주체</label>
+    <div class="who-sel">
+      <button type="button" class="who-opt" id="ewo-common" onclick="selectEditWho('공통')">🤝 공통</button>
+      <button type="button" class="who-opt" id="ewo-dayoung" onclick="selectEditWho('다영')">👤 다영</button>
+      <button type="button" class="who-opt" id="ewo-sooyeon" onclick="selectEditWho('수연')">👤 수연</button>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">날짜</label>
+      <select class="fc" id="edit-day">
+        <option value="-1">날짜 미정</option><option value="0">토 (도착일)</option><option value="1">일</option>
+        <option value="2">월</option><option value="3">화</option><option value="4">수</option>
+        <option value="5">목</option><option value="6">금</option><option value="7">토 (출발일)</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">카테고리</label>
+      <select class="fc" id="edit-cat"><option>교통</option><option>투어·입장료</option><option>식비</option><option>숙박</option><option>쇼핑</option><option>기타</option><option>USD</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">항목명</label><input class="fc" type="text" id="edit-title"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">금액 (EUR)</label><input class="fc" type="number" id="edit-eur" step="0.5"></div>
+    <div class="fg"><label class="fl">금액 (KRW)</label><input class="fc" type="number" id="edit-krw"></div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">상태</label>
+      <select class="fc" id="edit-status"><option>예정</option><option>지출 완료</option></select>
+    </div>
+    <div class="fg"></div>
+  </div>
+  <div class="fg"><label class="fl">메모</label><input class="fc" type="text" id="edit-note"></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('editExp')">취소</button><button class="btn btn-accent" onclick="saveEditExp()">저장</button></div>
+</div></div>
+<div class="modal-overlay" id="modal-restaurant"><div class="modal">
+  <div class="modal-title">맛집 추가</div>
+  <div class="fg"><label class="fl">음식점 이름</label><input class="fc" type="text" id="re-name" placeholder="예) El Xampanyet"></div>
+  <div class="fr">
+    <div class="fg"><label class="fl">지역</label><input class="fc" type="text" id="re-area" placeholder="예) 엘 보른"></div>
+    <div class="fg"><label class="fl">종류</label>
+      <select class="fc" id="re-type"><option>타파스</option><option>해산물</option><option>카페</option><option>기타</option></select>
+    </div>
+  </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">예상 예산 (1인)</label><input class="fc" type="text" id="re-price" placeholder="€15~25"></div>
+    <div class="fg"><label class="fl">상태</label>
+      <select class="fc" id="re-status"><option>가고 싶음</option><option>예약 완료</option><option>다녀옴</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">메모 / 추천 메뉴</label><input class="fc" type="text" id="re-note" placeholder="예) 베르무트, 핀초스"></div>
+  <div class="fg"><label class="fl">구글맵 링크 (선택)</label><input class="fc" type="text" id="re-link" placeholder="https://maps.google.com/..."></div>
+  <div class="modal-actions"><button class="btn" onclick="closeModal('restaurant')">취소</button><button class="btn btn-accent" onclick="addRestaurant()">추가</button></div>
+</div></div>
+
+<script type="module">
+/* ── 상수 ── */
+const DAYS=[
+  {label:'토',sub:'도착',note:'인천 11:50 출발 → 바르셀로나 19:10 도착'},
+  {label:'일',sub:'',note:'고딕 지구 + 엘 보른'},
+  {label:'월',sub:'',note:'가우디 투어 (한국어)'},
+  {label:'화',sub:'',note:'시체스 당일치기'},
+  {label:'수',sub:'',note:'바르셀로네타 해변 + 포블레 노우'},
+  {label:'목',sub:'',note:'코사 데 마르 당일치기'},
+  {label:'금',sub:'',note:'구엘 공원 + 쇼핑'},
+  {label:'토',sub:'출발',note:'20:50 바르셀로나 출발 → 일요일 16:20 인천 도착'},
+];
+const CATS=['교통','투어·입장료','식비','숙박','쇼핑','기타','USD'];
+const CAT_COLOR={'교통':'#185FA5','투어·입장료':'#534AB7','식비':'#BA7517','숙박':'#0F6E56','쇼핑':'#D85A30','기타':'#888780','USD':'#0891B2'};
+const TYPE_TAG={'관광':'tag-teal','식사':'tag-amber','이동':'tag-gray','투어':'tag-purple','쇼핑':'tag-coral','기타':'tag-gray'};
+const WHO_CLS={'공통':'who-common','다영':'who-dayoung','수연':'who-sooyeon'};
+const STATUS_CLS={'가고 싶음':'','예약 완료':'tag-purple','다녀옴':'tag-teal'};
+
+/* ── 초기 데이터 ── */
+const DEFAULT={
+  cfg:{common:0,dayoung:200,sooyeon:200,commonKrw:0,dayoungKrw:300000,sooyeonKrw:300000,hotelKrw:2702617,flightKrw:1517900},
+  dayMemos:[
+    '✈ 인천 11:50 출발 → 바르셀로나 19:10 도착\n🚌 아에로부스 A1 (T1이면 A1, T2면 A2)\n📍 Pl. Catalunya - Andana Central 하차 → 숙소 도보 8분\n🏨 숙소 도착 예상 20:50~21:00\n💡 왕복 티켓 미리 예약 → aerobcn.com\n💰 관광세+봉사료 USD 104.16 체크인 시 현장 지불\n🍽️ 저녁: 숙소 근처 핀초스+맥주\n🛒 장보기: 메르카도나 (초기 장보기 €20)',
+    '🍽️ 커피+간식 · 보케리아 점심 · 집밥 저녁\n\n📍 보른 골목 베르무트 타임 (11:30~)\n📍 보케리아 시장 → 점심\n📍 바르셀로나 대성당\n📍 카탈루냐 음악당 (공연 예약 필요 palaumusica.cat)\n📍 산타카테리나 시장\n📍 개선문\n📍 피카소 미술관 뮤지엄샵\n🛒 장보기: 보케리아·산타카테리나 시장',
+    '✅ 우니코투어 가우디 투어 (수연이 예약 완료)\n📍 07:15 숙소 출발 → 카사밀라 도보 15분\n⏰ 07:30 카사밀라 앞 미팅\n🚌 전용버스 · 7시간 30분\n💶 입장료 €62/인 현장 현금 지불\n🎫 사파 14:45 입장 · 다영 €36(타워) / 수연 €34\n⏰ 15:00 타워\n🏥 산파우 병원 (사파 도보 5분)\n🚌 귀가: Mallorca-Marina → D50버스 → 23분\n🍽️ 장보기+집밥 저녁\n\n📌 미채택 투어B(메멘토) ₩29,500/인 · myrealtrip 3410191',
+    '🍽️ 집밥 아침 · 시체스 점심+저녁\n🚌 숙소 → Casp-Pau Claris 도보 4분 → 54번버스 → 산츠역\n🚆 산츠역 R2 Sud → 시체스 40분 · €6/인 · 추후 예매!\n\n⏰ 시체스 흐름\n📍 구시가 골목 + 교회 절벽 뷰포인트\n🦞 점심\n🛒 마트 간식 + 짐 보관소\n🏖️ 물놀이\n🚿 해변 샤워기\n📍 구시가 + 카바 한잔 🥂\n🥘 저녁 빠에야\n🚆 귀환',
+    '🍽️ 집밥 아침 · 해변 점심 · 집밥 저녁\n🏖️ 바르셀로네타 해변 오전\n📍 산타카테리나 시장 → 개선문 → 시우타델라 공원\n🍺 해질녘 해변 맥주 (일몰 21:00~21:30)\n🎵 카탈루냐 음악당 공연 20:00 (75분 · €35/인)\n   palaumusica.cat 예매 필요!',
+    '🍽️ 집밥 아침 · 토사데마르 점심 · 귀환 후 외식\n🚌 숙소 → Casp-Pau Claris 도보 4분 → 54번버스 → Estació del Nord\n🚌 아이다 버스 10:45 출발 → 토사 데 마르 12:05 도착 (1시간 20분)\n\n⏰ 토사 데 마르 흐름\n🗺️ 구경\n🍽️ 점심\n🏖️ 해변 물놀이\n🚿 해변 샤워기\n🚶 동네 산책\n🚌 18:10 버스 귀환 → 19:30 바르셀로나 도착\n🍽️ 귀환 후 외식\n\n💡 간식·음료 바르셀로나에서 미리 챙기기 (현지 마트 적음)',
+    '🍽️ 집밥 아침 · 점심 · 마지막 만찬 🥂\n\n⏰ 금요일 흐름\n11:00 쇼핑 🛍️ (포르탈 데 랑헬 · 기념품)\n13:00 점심\n16:00 에스파냐 광장 지하철 이동\n16:30 MNAC 계단 뷰 감상 (무료)\n18:30 마법의 분수 자리 잡기\n19:00 마법의 분수 쇼 🎇 (무료)\n20:00 고딕 지구로 이동\n20:30 우니코 야경투어 🗺️\n   레이알광장→페란→대성당→비스베→산필립네리→왕의광장→산타마리아델마르\n   🎧 유선이어폰 필수\n22:30 마지막 만찬 🥂',
+    '🍽️ 숙소 아침 (남은 재료로)\n🌄 벙커 아침 일찍 (V17버스 or 지하철 Guinardó역 · T-Casual 2회)\n⏰ 체크아웃 + 짐 보관 (레이트체크아웃 협의 중)\n🚌 17:00 Pl.Catalunya → 아에로부스\n✈ 20:50 바르셀로나 출발 → 일요일 16:20 인천 도착'
+  ],
+  schedule:[
+    // 토 도착
+    {day:0,time:'19:10',type:'이동',title:'바르셀로나 공항 도착',place:'Barcelona El Prat Airport',note:'아에로부스 A1 → Pl.Catalunya → 숙소 도보 8분',cost:14,link:''},
+    {day:0,time:'21:00',type:'식사',title:'숙소 근처 타파스 바',place:'Gran Via de les Corts Catalanes Barcelona',note:'첫날 가볍게 · 타파스+맥주',cost:50,link:''},
+    // 일 고딕+보른
+    {day:1,time:'09:00',type:'식사',title:'아침 — 숙소',place:'',note:'전날 장봐둔 재료로',cost:7,link:''},
+    {day:1,time:'10:00',type:'관광',title:'베르무트 타임',place:'El Xampanyet Barcelona',note:'보른 골목 바 · 베르무트+핀초스 · 스페인 일요일 문화',cost:15,link:''},
+    {day:1,time:'11:30',type:'관광',title:'보케리아 시장',place:'La Boqueria Barcelona',note:'장보기 + 구경 · 소매치기 주의',cost:0,link:''},
+    {day:1,time:'13:00',type:'식사',title:'점심 — 보케리아 시장',place:'La Boqueria Barcelona',note:'생굴, 하몽, 주스',cost:30,link:''},
+    {day:1,time:'14:30',type:'관광',title:'바르셀로나 대성당',place:'Barcelona Cathedral',note:'고딕 지구 · 외부 무료',cost:0,link:''},
+    {day:1,time:'15:30',type:'관광',title:'카탈루냐 음악당',place:'Palau de la Musica Catalana Barcelona',note:'공연 예약 필수 · palaumusica.cat · 입장권 €18 or 공연 €20~25',cost:22,link:'https://www.palaumusica.cat'},
+    {day:1,time:'17:00',type:'관광',title:'산타카테리나 시장',place:'Mercat de Santa Caterina Barcelona',note:'보케리아보다 현지인 많음 · 지붕 모자이크 예쁨',cost:0,link:''},
+    {day:1,time:'17:30',type:'관광',title:'개선문',place:'Arc de Triomf Barcelona',note:'도보 10분 · 포토스팟',cost:0,link:''},
+    {day:1,time:'18:00',type:'관광',title:'피카소 미술관 뮤지엄샵',place:'Museu Picasso Barcelona',note:'내부 입장 아니어도 샵은 이용 가능',cost:0,link:''},
+    {day:1,time:'20:00',type:'식사',title:'저녁 — 집밥',place:'',note:'시장에서 사온 재료로',cost:18,link:''},
+    // 월 가우디
+    {day:2,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'간단히 먹고 출발',cost:7,link:''},
+    {day:2,time:'07:15',type:'이동',title:'카사밀라 도보 이동',place:'Casa Mila La Pedrera Barcelona',note:'숙소 → 카사밀라 도보 15분',cost:0,link:''},
+    {day:2,time:'07:30',type:'투어',title:'가우디 투어 — 우니코투어',place:'Casa Mila La Pedrera Barcelona',note:'전용버스 · 7시간 30분 · 입장료 €62/인 현장 현금',cost:62,link:'https://experiences.myrealtrip.com/products/3516980'},
+    {day:2,time:'08:00',type:'투어',title:'카사 밀라 내부',place:'Casa Mila La Pedrera Barcelona',note:'옥상 굴뚝 포토스팟',cost:0,link:''},
+    {day:2,time:'10:00',type:'투어',title:'카사 바트요 내부',place:'Casa Batllo Barcelona',note:'뼈의 집',cost:0,link:''},
+    {day:2,time:'11:30',type:'투어',title:'구엘 공원 내부',place:'Park Güell Barcelona',note:'모자이크 도마뱀 · 전망 최고',cost:0,link:''},
+    {day:2,time:'13:30',type:'식사',title:'점심 — 투어 중',place:'Sagrada Familia Barcelona',note:'사파 인근 · 가이드 안내',cost:30,link:''},
+    {day:2,time:'14:45',type:'관광',title:'사그라다 파밀리아 입장',place:'Sagrada Familia Barcelona',note:'입장권 구매 완료 · 다영 €36(타워포함) / 수연 €34',cost:0,link:''},
+    {day:2,time:'15:00',type:'관광',title:'사파 타워 관람',place:'Sagrada Familia Barcelona',note:'탄생 파사드 타워',cost:0,link:''},
+    {day:2,time:'17:00',type:'관광',title:'산파우 병원',place:'Hospital de Sant Pau Barcelona',note:'사파 도보 5분 · 가우디 임종 장소 · 유네스코 세계문화유산 · 입장 €16',cost:16,link:''},
+    {day:2,time:'18:00',type:'이동',title:'숙소 귀환',place:'Gran Via de les Corts Catalanes Barcelona',note:'Mallorca-Marina → D50 버스 → 23분',cost:0,link:''},
+    {day:2,time:'19:30',type:'식사',title:'저녁 — 집밥',place:'',note:'',cost:18,link:''},
+    // 화 시체스
+    {day:3,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:7,link:''},
+    {day:3,time:'09:30',type:'이동',title:'시체스 출발',place:'Passeig de Gracia Station Barcelona',note:'R2 Sud · 40분 · Renfe 앱 예매',cost:10,link:''},
+    {day:3,time:'11:00',type:'관광',title:'시체스 구시가 탐방',place:'Sitges Spain',note:'해변 + 골목 + 바',cost:0,link:''},
+    {day:3,time:'13:00',type:'식사',title:'점심 — 시체스 해산물',place:'Sitges Spain',note:'해변 앞 레스토랑',cost:50,link:''},
+    {day:3,time:'19:00',type:'식사',title:'저녁 — 시체스',place:'Sitges Spain',note:'',cost:50,link:''},
+    {day:3,time:'21:00',type:'이동',title:'바르셀로나 귀환',place:'Sitges Train Station',note:'R2 Sud',cost:10,link:''},
+    // 수 해변+음악당
+    {day:4,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:0,link:''},
+    {day:4,time:'09:30',type:'관광',title:'바르셀로네타 해변',place:'Barceloneta Beach Barcelona',note:'오전 일찍 한산함',cost:0,link:''},
+    {day:4,time:'11:30',type:'관광',title:'산타카테리나 시장',place:'Mercat de Santa Caterina Barcelona',note:'장보기',cost:0,link:''},
+    {day:4,time:'12:30',type:'관광',title:'개선문',place:'Arc de Triomf Barcelona',note:'도보 10분',cost:0,link:''},
+    {day:4,time:'13:30',type:'식사',title:'점심 — 해변 근처',place:'Barceloneta Barcelona',note:'',cost:20,link:''},
+    {day:4,time:'15:00',type:'관광',title:'시우타델라 공원',place:'Parc de la Ciutadella Barcelona',note:'휴식',cost:0,link:''},
+    {day:4,time:'17:00',type:'관광',title:'해질녘 해변 맥주 🍺',place:'Barceloneta Beach Barcelona',note:'슈퍼에서 맥주 사서 모래사장에서 · 일몰 21:00~21:30',cost:5,link:''},
+    {day:4,time:'19:30',type:'이동',title:'카탈루냐 음악당으로 이동',place:'Palau de la Musica Catalana Barcelona',note:'도보 or 지하철',cost:0,link:''},
+    {day:4,time:'20:00',type:'관광',title:'카탈루냐 음악당 공연 🎵',place:'Palau de la Musica Catalana Barcelona',note:'75분 · €35/인 · palaumusica.cat 예매 필요',cost:35,link:'https://www.palaumusica.cat'},
+    {day:4,time:'21:30',type:'식사',title:'저녁 — 집밥',place:'',note:'공연 후 귀가',cost:0,link:''},
+    // 목 토사데마르
+    {day:5,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:0,link:''},
+    {day:5,time:'09:30',type:'이동',title:'토사 데 마르 출발',place:'Estacio del Nord Barcelona',note:'숙소 → Casp-Pau Claris 도보 4분 → 54번 버스 → Estació del Nord → 아이다 버스 10:45 출발',cost:0,link:''},
+    {day:5,time:'12:05',type:'관광',title:'토사 데 마르 도착',place:'Tossa de Mar Spain',note:'버스 1시간 20분 · 짐 보관 후 구경 시작',cost:0,link:''},
+    {day:5,time:'13:00',type:'식사',title:'점심 — 토사 데 마르',place:'Tossa de Mar Spain',note:'현지 로컬 식당',cost:30,link:''},
+    {day:5,time:'14:00',type:'관광',title:'해변 물놀이 🏖️',place:'Tossa de Mar Beach Spain',note:'짐 보관 후 해변 · 전체 도보권',cost:0,link:''},
+    {day:5,time:'17:30',type:'관광',title:'동네 산책',place:'Tossa de Mar Spain',note:'조용한 어촌 마을',cost:0,link:''},
+    {day:5,time:'18:10',type:'이동',title:'바르셀로나 귀환',place:'Tossa de Mar Spain',note:'아이다 버스 18:10 출발 → Estació del Nord 19:30 도착',cost:0,link:''},
+    {day:5,time:'20:00',type:'식사',title:'저녁 — 귀환 후 외식',place:'Eixample Barcelona',note:'숙소 근처 동네 식당',cost:35,link:''},
+    // 금 쇼핑+에스파냐광장+야경
+    {day:6,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:0,link:''},
+    {day:6,time:'11:00',type:'쇼핑',title:'쇼핑 🛍️',place:'Portal de l Angel Barcelona',note:'포르탈 데 랑헬 · 기념품 · 개인 쇼핑',cost:0,link:''},
+    {day:6,time:'13:00',type:'식사',title:'점심',place:'Eixample Barcelona',note:'동네에서 가볍게',cost:20,link:''},
+    {day:6,time:'16:00',type:'이동',title:'에스파냐 광장 이동',place:'Placa Espanya Barcelona',note:'지하철 L3 Espanya역 · T-Casual',cost:0,link:''},
+    {day:6,time:'16:30',type:'관광',title:'MNAC 계단 뷰 감상',place:'Museu Nacional d Art de Catalunya Barcelona',note:'외관 무료 · 바르셀로나 전망 · 자리 잡기',cost:0,link:''},
+    {day:6,time:'18:30',type:'관광',title:'마법의 분수 자리 잡기',place:'Font Magica Montjuic Barcelona',note:'15~30분 전 도착 권장 · MNAC 계단 추천',cost:0,link:''},
+    {day:6,time:'19:00',type:'관광',title:'마법의 분수 쇼 🎇',place:'Font Magica Montjuic Barcelona',note:'무료 · 19:00·20:00 두 타임 · 15~20분/회',cost:0,link:''},
+    {day:6,time:'20:00',type:'이동',title:'고딕 지구로 이동',place:'Barri Gotic Barcelona',note:'지하철 · 야경투어 미팅 포인트',cost:0,link:''},
+    {day:6,time:'20:30',type:'투어',title:'우니코 야경투어 🗺️',place:'Placa Reial Barcelona',note:'레이알광장→페란→대성당→비스베→산필립네리→왕의광장→산타마리아델마르 · 90~120분 · 유선이어폰 필요',cost:0,link:'https://experiences.myrealtrip.com/products/3438670'},
+    {day:6,time:'22:30',type:'식사',title:'마지막 만찬 🥂',place:'Eixample Barcelona',note:'야경투어 후 · 분위기 좋은 레스토랑',cost:50,link:''},
+    // 토 출발
+    {day:7,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'남은 재료로 간단히',cost:0,link:''},
+    {day:7,time:'08:00',type:'관광',title:'벙커',place:'Bunkers del Carmel Barcelona',note:'아침 일찍 한산 · V17버스 or 지하철 Guinardó역 · 왕복 2회 T-Casual',cost:0,link:''},
+    {day:7,time:'10:30',type:'기타',title:'체크아웃 + 짐 정리',place:'Gran Via de les Corts Catalanes Barcelona',note:'짐 보관 확인 · 레이트 체크아웃 협의 중',cost:0,link:''},
+    {day:7,time:'17:00',type:'이동',title:'공항 출발',place:'Placa de Catalunya Barcelona',note:'아에로부스 · Pl.Catalunya 탑승 · 35분',cost:0,link:''},
+    {day:7,time:'20:50',type:'이동',title:'바르셀로나 출발 ✈',place:'Barcelona El Prat Airport',note:'→ 일요일 16:20 인천 도착',cost:0,link:''},
+  ],
+  route:[
+    {day:0,from:'공항 (El Prat)',to:'숙소 (그란비아)',transport:'🚌 공항버스',duration:'35분',note:'아에로부스 · €13.3/인 왕복'},
+    {day:1,from:'숙소',to:'고딕 지구',transport:'🚇 지하철',duration:'10분',note:'L3 → Liceu역'},
+    {day:1,from:'고딕 지구',to:'엘 보른',transport:'🚶 도보',duration:'10분',note:'완전 도보 가능'},
+    {day:2,from:'숙소',to:'카사밀라',transport:'🚶 도보',duration:'15분',note:'07:15 출발'},
+    {day:2,from:'사그라다 파밀리아',to:'숙소',transport:'🚌 버스',duration:'23분',note:'Mallorca-Marina → D50 버스 → Paral·lel 환승'},
+    {day:3,from:'숙소',to:'산츠역',transport:'🚌 버스',duration:'17분',note:'Casp-Pau Claris → 54번 버스 → Barcelona-Sants'},
+    {day:3,from:'산츠역',to:'시체스',transport:'🚆 기차',duration:'40분',note:'R2 Sud · €6/인 · 추후 예매'},
+    {day:4,from:'숙소',to:'바르셀로네타',transport:'🚇 지하철',duration:'15분',note:'L4 Barceloneta역'},
+    {day:5,from:'숙소',to:'Estació del Nord',transport:'🚌 버스',duration:'18분',note:'도보 4분 → 54번 버스 · Casp-Pau Claris 탑승'},
+    {day:5,from:'Estació del Nord',to:'토사 데 마르',transport:'🚌 버스',duration:'80분',note:'아이다 버스 10:45 출발 · €14.3/인'},
+    {day:5,from:'토사 데 마르',to:'Estació del Nord',transport:'🚌 버스',duration:'80분',note:'아이다 버스 18:10 출발 · 왕복 할인 €13.4/인'},
+    {day:6,from:'숙소',to:'에스파냐 광장',transport:'🚇 지하철',duration:'15분',note:'L3 Espanya역 · T-Casual'},
+    {day:7,from:'숙소',to:'벙커',transport:'🚌 버스',duration:'30분',note:'V17버스 · T-Casual'},
+    {day:7,from:'숙소',to:'공항 (El Prat)',transport:'🚌 공항버스',duration:'35분',note:'아에로부스 · 17:00 이전 출발'},
+  ],
+  expenses:[
+
+    // 기타
+    {who:'공통',day:0,cat:'USD',title:'관광세+봉사료',eur:0,krw:0,usd:104.16,status:'예정',note:'체크인 시 현장 지불 · USD 104.16'},
+    {who:'공통',day:7,cat:'기타',title:'레이트 체크아웃',eur:30,status:'예정',note:'협의 중 · 확정 후 상태 변경'},
+    // 교통
+    {who:'공통',day:0,cat:'교통',title:'공항버스 왕복 (2인)',eur:26.6,status:'예정',note:'아에로부스 A1 · 왕복 €13.3/인 · Pl.Catalunya 하차 → 도보 8분'},
+    {who:'공통',day:-1,cat:'교통',title:'T-Casual 10회권 × 2장 (2인)',eur:45.6,status:'예정',note:'€11.4/장 · 각 2장 · 총 20회/인 · 지하철+버스+푸니쿨라 포함'},
+    {who:'공통',day:3,cat:'교통',title:'시체스 기차 왕복 (2인)',eur:24,status:'예정',note:'R2 Sud · 편도 €6/인 · 산츠역 출발 · 추후 예매 필요'},
+    {who:'공통',day:5,cat:'교통',title:'토사 데 마르 버스 왕복 (2인)',eur:59,status:'예정',note:'아이다 버스 · Estació del Nord 출발 · 편도 1시간 20분 · 관리비 포함'},
+    // 투어·입장료
+    {who:'공통',day:2,cat:'투어·입장료',title:'가우디 투어 — 가이드비 (2인)',eur:0,krw:140694,status:'지출 완료',note:'₩140,694 · 우니코투어 · 수연이 예약 완료'},
+    {who:'공통',day:2,cat:'투어·입장료',title:'가우디 투어 — 입장료 (2인)',eur:124,status:'예정',note:'€62/인 × 2 · 카사밀라+카사바트요+구엘공원 · 현장 현금 지불'},
+    {who:'공통',day:2,cat:'투어·입장료',title:'사그라다 파밀리아 입장 (2인)',eur:70,status:'지출 완료',note:'다영 €36(타워포함) + 수연 €34 · 공통 환전액에서 지불 · 14:45 입장'},
+    {who:'공통',day:6,cat:'기타',title:'야경투어 (2인)',eur:0,krw:38284,status:'예정',note:'우니코 야경투어 · ₩19,142/인 × 2 · 50% 할인 · myrealtrip 3438670'},
+    {who:'공통',day:4,cat:'투어·입장료',title:'카탈루냐 음악당 공연 (2인)',eur:70,status:'예정',note:'수요일 20:00 · 75분 · €35/인 · palaumusica.cat 예매 필요'},
+    // 식비 €410
+    {who:'공통',day:0,cat:'식비',title:'토 — 장보기+저녁',eur:55,status:'예정',note:'장보기 €20 (메르카도나) + 핀초스+맥주 €35'},
+    {who:'공통',day:1,cat:'식비',title:'일 — 커피+점심+저녁',eur:33,status:'예정',note:'커피+간식 €8 + 보케리아 점심 €25 + 집밥(장보기 포함)'},
+    {who:'공통',day:2,cat:'식비',title:'월 — 장보기+커피+점심+저녁',eur:48,status:'예정',note:'장보기 €15 + 커피+간식 €8 + 투어 중 점심 €25 + 집밥'},
+    {who:'공통',day:3,cat:'식비',title:'화 — 커피+점심+저녁 (시체스)',eur:80,status:'예정',note:'커피+간식 €5 + 시체스 점심 €40 + 시체스 저녁 €35'},
+    {who:'공통',day:4,cat:'식비',title:'수 — 커피+점심+집밥+해변맥주',eur:28,status:'예정',note:'커피+간식 €8 + 해변 점심 €20 + 집밥 + 맥주 🍺'},
+    {who:'공통',day:5,cat:'식비',title:'목 — 장보기+커피+점심+저녁 (토사데마르)',eur:85,status:'예정',note:'장보기 €15 + 커피+간식 €5 + 토사데마르 점심 €30 + 귀환 후 외식 €35'},
+    {who:'공통',day:6,cat:'식비',title:'금 — 커피+점심+저녁 (마지막만찬)',eur:78,status:'예정',note:'커피+간식 €8 + 가볍게 점심 €20 + 마지막 만찬 €50'},
+    {who:'공통',day:7,cat:'식비',title:'토 — 숙소 아침',eur:3,status:'예정',note:'남은 재료로 간단히'},
+    {who:'다영',day:-1,cat:'쇼핑',title:'개인 쇼핑·기타',eur:0,status:'예정',note:''},
+    {who:'수연',day:-1,cat:'쇼핑',title:'개인 쇼핑·기타',eur:0,status:'예정',note:''},
+  ],
+  restaurant:[
+    {name:'El Xampanyet',area:'엘 보른',type:'타파스',price:'€15~20',status:'가고 싶음',note:'베르무트, 핀초스. 바르셀로나 클래식 바',link:''},
+    {name:'Bodega Sepúlveda',area:'에이샴플레',type:'타파스',price:'€20~30',status:'가고 싶음',note:'숙소 근처, 와인 바',link:''},
+    {name:'La Cova Fumada',area:'바르셀로네타',type:'해산물',price:'€20~30',status:'가고 싶음',note:'봄바 원조, 현금만, 일찍 마감',link:''},
+    {name:'Bar Pinotxo (보케리아)',area:'람블라스',type:'카페',price:'€10~15',status:'가고 싶음',note:'아침 일찍, 현지인 픽',link:''},
+    {name:'Alsur Café',area:'에이샴플레',type:'카페',price:'€5~10',status:'가고 싶음',note:'숙소 바로 근처 조식',link:''},
+  ]
+};
+
+let data=JSON.parse(JSON.stringify(DEFAULT));
+if(!data.dayMemos)data.dayMemos=['','','','','','','',''];
+let currentDay=0;
+let restFilter='전체';
+let selectedWho='공통';
+
+/* ════ Firebase 설정 ════ */
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA1mRq32zAqcrYUaZmiHHrumwknRoScAoQ",
+  authDomain: "barcelona-524cb.firebaseapp.com",
+  projectId: "barcelona-524cb",
+  storageBucket: "barcelona-524cb.firebasestorage.app",
+  messagingSenderId: "394795547791",
+  appId: "1:394795547791:web:06883137d1d5c835ca44fa"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const docRef = doc(db, 'trips', 'barcelona2026');
+
+// 저장 (디바운스 500ms)
+let saveTimer=null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    setDoc(docRef, data).catch(e=>console.error('저장 실패:', e));
+  }, 500);
+}
+
+// 실시간 동기화 구독
+function initFirebase(){
+  onSnapshot(docRef, (snap)=>{
+    if(snap.exists()){
+      const remote=snap.data();
+      data=remote;
+      if(!data.dayMemos)data.dayMemos=['','','','','','','',''];
+      renderBar();renderDayTabs();renderSchedule();renderBudget();renderRestaurants();
+    } else {
+      // 첫 접속 - DEFAULT 데이터 저장
+      setDoc(docRef, data);
+    }
+  }, (err)=>{
+    console.error('Firebase 연결 실패:', err);
+    // 오프라인 fallback - localStorage
+    const local=localStorage.getItem('bcn26v1');
+    if(local) data=JSON.parse(local);
+  });
+}
+function eur(v){return(+v||0);}
+
+/* ════ 예산 계산 ════ */
+const EUR_RATE=1719; // €698 = ₩1,200,000 환전 기준
+function toKrw(eurAmt){return Math.round(eurAmt*EUR_RATE);}
+
+// USD 환율 (실시간 갱신)
+let USD_RATE=1498; // 기본값
+async function fetchUsdRate(){
+  try{
+    const res=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d=await res.json();
+    if(d.rates&&d.rates.KRW){
+      USD_RATE=Math.round(d.rates.KRW);
+      renderBar();renderBudget();
+    }
+  }catch(e){console.log('환율 API 실패, 기본값 사용');}
+}
+
+function calcB(){
+  const e=data.expenses;
+  const sumEur=(who,done)=>e.filter(x=>x.who===who&&(done?x.status==='지출 완료':true)).reduce((s,x)=>s+eur(x.eur),0);
+  const sumKrw=(who,done)=>e.filter(x=>x.who===who&&(done?x.status==='지출 완료':true)).reduce((s,x)=>s+(+x.krw||0),0);
+  const b={
+    commonBudget:data.cfg.common,
+    commonKrwBudget:data.cfg.commonKrw||0,
+    commonSpent:sumEur('공통',true),
+    commonTotal:sumEur('공통',false),
+    commonKrwSpent:sumKrw('공통',true),
+    commonKrwTotal:sumKrw('공통',false),
+    dayoungBudget:data.cfg.dayoung,
+    dayoungKrwBudget:data.cfg.dayoungKrw||0,
+    dayoungSpent:sumEur('다영',true),
+    dayoungTotal:sumEur('다영',false),
+    dayoungKrwSpent:sumKrw('다영',true),
+    dayoungKrwTotal:sumKrw('다영',false),
+    sooyeonBudget:data.cfg.sooyeon,
+    sooyeonKrwBudget:data.cfg.sooyeonKrw||0,
+    sooyeonSpent:sumEur('수연',true),
+    sooyeonTotal:sumEur('수연',false),
+    sooyeonKrwSpent:sumKrw('수연',true),
+    sooyeonKrwTotal:sumKrw('수연',false),
+  };
+  // 고정 지출
+  b.hotelKrw=data.cfg.hotelKrw||0;
+  b.flightKrw=data.cfg.flightKrw||0;
+  // 1인 총합 — 다영
+  b.dayoungPersonKrw=Math.round(
+    b.flightKrw +
+    b.hotelKrw/2 +
+    toKrw(b.commonTotal)/2 +
+    b.commonKrwTotal/2 +
+    toKrw(b.dayoungBudget) +
+    b.dayoungKrwBudget
+  );
+  b.dayoungPersonSpentKrw=Math.round(
+    b.flightKrw +
+    b.hotelKrw/2 +
+    toKrw(b.commonSpent)/2 +
+    b.commonKrwSpent/2 +
+    toKrw(b.dayoungSpent) +
+    b.dayoungKrwSpent
+  );
+  // 1인 총합 — 수연
+  b.sooyeonPersonKrw=Math.round(
+    b.flightKrw +
+    b.hotelKrw/2 +
+    toKrw(b.commonTotal)/2 +
+    b.commonKrwTotal/2 +
+    toKrw(b.sooyeonBudget) +
+    b.sooyeonKrwBudget
+  );
+  b.sooyeonPersonSpentKrw=Math.round(
+    b.flightKrw +
+    b.hotelKrw/2 +
+    toKrw(b.commonSpent)/2 +
+    b.commonKrwSpent/2 +
+    toKrw(b.sooyeonSpent) +
+    b.sooyeonKrwSpent
+  );
+  // USD (실시간 환율)
+  b.totalUsd=e.reduce((s,x)=>s+(+x.usd||0),0);
+  b.spentUsd=e.filter(x=>x.status==='지출 완료').reduce((s,x)=>s+(+x.usd||0),0);
+  b.totalUsdKrw=Math.round(b.totalUsd*USD_RATE);
+  b.spentUsdKrw=Math.round(b.spentUsd*USD_RATE);
+  // 통합
+  const eurBudgetKrw=toKrw(b.commonBudget+b.dayoungBudget+b.sooyeonBudget);
+  b.totalBudgetKrw=eurBudgetKrw+(b.commonKrwBudget+b.dayoungKrwBudget+b.sooyeonKrwBudget);
+  b.totalSpentKrw=toKrw(b.commonSpent+b.dayoungSpent+b.sooyeonSpent)+(b.commonKrwSpent+b.dayoungKrwSpent+b.sooyeonKrwSpent);
+  b.totalPlannedKrw=toKrw(b.commonTotal+b.dayoungTotal+b.sooyeonTotal)+(b.commonKrwTotal+b.dayoungKrwTotal+b.sooyeonKrwTotal);
+  b.totalLeftKrw=b.totalBudgetKrw-b.totalPlannedKrw;
+  return b;
+}
+
+/* ════ 상단 바 렌더 ════ */
+function renderBar(){
+  const b=calcB();
+  const commonLeft=b.commonBudget-b.commonTotal;
+  const dayoungLeft=b.dayoungBudget-b.dayoungTotal;
+  const sooyeonLeft=b.sooyeonBudget-b.sooyeonTotal;
+  const pctCommon=b.commonBudget>0?Math.min(100,Math.round(b.commonSpent/b.commonBudget*100)):0;
+  const pctCommonPlan=b.commonBudget>0?Math.min(100,Math.round(b.commonTotal/b.commonBudget*100)):0;
+
+  // 카테고리 pills (공통만 · USD 제외)
+  const pills=CATS.filter(c=>c!=='USD').map(c=>{
+    const done=data.expenses.filter(e=>e.who==='공통'&&e.cat===c&&e.status==='지출 완료').reduce((s,e)=>s+eur(e.eur),0);
+    const plan=data.expenses.filter(e=>e.who==='공통'&&e.cat===c&&e.status==='예정').reduce((s,e)=>s+eur(e.eur),0);
+    const t=done+plan;
+    if(!t)return'';
+    return`<span class="bar-pill" style="background:${CAT_COLOR[c]}18;color:${CAT_COLOR[c]}">${c} ${done>0?`<b>€${done.toFixed(0)}</b>`:''}${done>0&&plan>0?'+':''}${plan>0?`<span style="opacity:.7">€${plan.toFixed(0)}</span>`:''}</span>`;
+  }).join('');
+
+  document.getElementById('bar-inner').innerHTML=`
+    <div class="bar-block" style="flex:1.6;min-width:180px">
+      <div class="bar-label">🤝 공통 EUR</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:1px">
+        <div class="bar-val c-common">€${b.commonTotal.toFixed(0)}<span class="bar-val-unit">총예정</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:2px;flex-wrap:wrap">
+        <span style="font-size:10px;color:var(--teal)">걷은 €${b.commonBudget} (₩${Math.round(b.commonKrwBudget/10000)}만)</span>
+        <span style="font-size:10px;color:${b.commonTotal>b.commonBudget?'var(--red)':'var(--text3)'}">
+          ${b.commonTotal>b.commonBudget?`추가필요 €${(b.commonTotal-b.commonBudget).toFixed(0)}`:'여유 €'+(b.commonBudget-b.commonTotal).toFixed(0)}
+        </span>
+      </div>
+      <div style="font-size:10px;color:var(--accent);margin-top:1px">집행 €${b.commonSpent.toFixed(0)}</div>
+      <div class="bar-prog" style="margin-top:3px"><div class="bar-prog-fill" style="width:${Math.min(100,Math.round(b.commonTotal/Math.max(b.commonBudget,b.commonTotal)*100))}%;background:#F0D0C4"></div></div>
+      <div class="bar-prog" style="margin-top:2px"><div class="bar-prog-fill" style="width:${b.commonTotal>0?Math.min(100,Math.round(b.commonSpent/b.commonTotal*100)):0}%;background:var(--accent)"></div></div>
+      <div class="bar-pills" style="margin-top:4px">${pills||'<span class="bar-pill" style="background:var(--surface2);color:var(--text3)">지출 없음</span>'}</div>
+    </div>
+    <div class="bar-block" style="flex:1;min-width:130px">
+      <div class="bar-label">🤝 공통 KRW</div>
+      <div class="bar-val c-common" style="font-size:15px">₩${Math.round(b.commonKrwTotal/10000)}만<span class="bar-val-unit">총예정</span></div>
+      <div style="display:flex;gap:6px;margin-top:2px">
+        <span style="font-size:10px;color:var(--teal)">걷은 ₩${Math.round(b.commonKrwBudget/10000)}만</span>
+        <span style="font-size:10px;color:${b.commonKrwTotal>b.commonKrwBudget?'var(--red)':'var(--text3)'}">
+          ${b.commonKrwTotal>b.commonKrwBudget?`추가 ₩${Math.round((b.commonKrwTotal-b.commonKrwBudget)/10000)}만`:`여유 ₩${Math.round((b.commonKrwBudget-b.commonKrwTotal)/10000)}만`}
+        </span>
+      </div>
+      <div style="font-size:10px;color:var(--accent);margin-top:1px">집행 ₩${Math.round(b.commonKrwSpent/10000)}만</div>
+      <div class="bar-prog" style="margin-top:3px"><div class="bar-prog-fill" style="width:${b.commonKrwTotal>0?Math.min(100,Math.round(b.commonKrwSpent/b.commonKrwTotal*100)):0}%;background:var(--accent)"></div></div>
+    </div>
+    <div class="bar-block" style="min-width:120px">
+      <div class="bar-label">👤 다영 개인</div>
+      <div style="display:flex;gap:6px;align-items:baseline;margin-top:1px">
+        <div>
+          <div style="font-size:9px;color:var(--text3)">EUR 예산</div>
+          <div class="bar-val c-dayoung" style="font-size:14px">€${b.dayoungBudget}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text3)">지출</div>
+          <div style="font-size:13px;font-weight:500;color:var(--purple)">€${b.dayoungTotal.toFixed(0)}</div>
+        </div>
+      </div>
+      ${b.dayoungKrwTotal>0?`<div style="font-size:10px;color:var(--purple);margin-top:2px">₩${Math.round(b.dayoungKrwTotal/10000)}만 원화지출</div>`:''}
+      <div class="bar-prog" style="margin-top:4px"><div class="bar-prog-fill" style="width:${b.dayoungBudget>0?Math.min(100,b.dayoungTotal/b.dayoungBudget*100).toFixed(0):0}%;background:var(--purple)"></div></div>
+      <div style="margin-top:5px;padding-top:5px;border-top:0.5px solid var(--border)">
+        <div style="font-size:9px;color:var(--accent)">1인 예상 총합</div>
+        <div style="font-size:14px;font-weight:700;color:var(--accent)">₩${Math.round(b.dayoungPersonKrw/10000)}만</div>
+        <div style="font-size:9.5px;color:var(--accent)">집행 ₩${Math.round(b.dayoungPersonSpentKrw/10000)}만</div>
+      </div>
+    </div>
+    <div class="bar-block" style="min-width:120px">
+      <div class="bar-label">👤 수연 개인</div>
+      <div style="display:flex;gap:6px;align-items:baseline;margin-top:1px">
+        <div>
+          <div style="font-size:9px;color:var(--text3)">EUR 예산</div>
+          <div class="bar-val c-sooyeon" style="font-size:14px">€${b.sooyeonBudget}</div>
+        </div>
+        <div>
+          <div style="font-size:9px;color:var(--text3)">지출</div>
+          <div style="font-size:13px;font-weight:500;color:var(--teal)">€${b.sooyeonTotal.toFixed(0)}</div>
+        </div>
+      </div>
+      ${b.sooyeonKrwTotal>0?`<div style="font-size:10px;color:var(--teal);margin-top:2px">₩${Math.round(b.sooyeonKrwTotal/10000)}만 원화지출</div>`:''}
+      <div class="bar-prog" style="margin-top:4px"><div class="bar-prog-fill" style="width:${b.sooyeonBudget>0?Math.min(100,b.sooyeonTotal/b.sooyeonBudget*100).toFixed(0):0}%;background:var(--teal)"></div></div>
+      <div style="margin-top:5px;padding-top:5px;border-top:0.5px solid var(--border)">
+        <div style="font-size:9px;color:var(--accent)">1인 예상 총합</div>
+        <div style="font-size:14px;font-weight:700;color:var(--accent)">₩${Math.round(b.sooyeonPersonKrw/10000)}만</div>
+        <div style="font-size:9.5px;color:var(--accent)">집행 ₩${Math.round(b.sooyeonPersonSpentKrw/10000)}만</div>
+      </div>
+    </div>
+    <div class="bar-block" style="min-width:90px">
+      <div class="bar-label">💵 USD 별도</div>
+      <div class="bar-val" style="font-size:15px;color:#0891B2">$${b.totalUsd.toFixed(2)}</div>
+      <div style="font-size:10px;color:#0891B2;margin-top:1px">≈ ₩${Math.round(b.totalUsdKrw/10000)}만</div>
+      <div style="font-size:9.5px;color:var(--accent);margin-top:1px">집행 $${b.spentUsd.toFixed(2)}</div>
+      <div style="font-size:9px;color:var(--text3);margin-top:2px">$1=₩${USD_RATE.toLocaleString()} 실시간</div>
+    </div>
+    <div class="bar-block" style="min-width:110px;border-left:2px solid var(--border2)">
+      <div class="bar-label">🏠✈ 고정비용 · 1인</div>
+      <div class="bar-val" style="font-size:13px;color:var(--text)">₩${Math.round((b.hotelKrw/2+b.flightKrw)/10000)}만</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">숙소 ₩${Math.round(b.hotelKrw/2/10000)}만 + 항공 ₩${Math.round(b.flightKrw/10000)}만</div>
+    </div>
+  `;
+
+  // bar 높이 동적 반영
+  const barH=document.getElementById('budget-bar').offsetHeight;
+  document.documentElement.style.setProperty('--bar-h',barH+'px');
+}
+
+/* ════ 일정 ════ */
+function renderDayTabs(){
+  document.getElementById('day-tabs').innerHTML=DAYS.map((d,i)=>
+    `<button class="day-tab ${i===currentDay?'active':''}" onclick="selectDay(${i})">${d.label}${d.sub?' · '+d.sub:''}</button>`
+  ).join('');
+}
+function selectDay(i){currentDay=i;renderDayTabs();renderSchedule();}
+
+function renderSchedule(){
+  const d=DAYS[currentDay];
+  const items=data.schedule.filter(s=>s.day===currentDay).sort((a,b)=>a.time.localeCompare(b.time));
+  const dayCost=items.reduce((s,i)=>s+eur(i.cost),0);
+  const places=items.filter(i=>i.place).map(i=>i.place);
+  const mapHtml=places.length>0?buildMapHtml(places):'';
+  document.getElementById('schedule-content').innerHTML=`
+    <div class="card" style="margin-bottom:12px;border-left:3px solid var(--accent)">
+      <div style="font-weight:700;font-size:14px;margin-bottom:1px">${d.label}요일${d.sub?' · '+d.sub:''}</div>
+      <div style="font-size:12px;color:var(--text2)">${d.note}</div>
+      ${dayCost?`<div style="margin-top:4px;font-size:11.5px;color:var(--accent)">당일 예상 지출 €${dayCost}</div>`:''}
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-size:10.5px;color:var(--text3);margin-bottom:5px;letter-spacing:.04em">📝 메모</div>
+        <textarea
+          id="day-memo-${currentDay}"
+          placeholder="준비물, 예약 확인사항, 가고 싶은 곳 등 자유롭게..."
+          oninput="saveMemo(${currentDay},this.value)"
+          style="width:100%;min-height:72px;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:inherit;font-size:12.5px;color:var(--text);background:var(--surface2);resize:vertical;outline:none;line-height:1.6;transition:border-color .12s;"
+          onfocus="this.style.borderColor='var(--accent)'"
+          onblur="this.style.borderColor='var(--border)'"
+        >${data.dayMemos[currentDay]||''}</textarea>
+      </div>
+    </div>
+    ${mapHtml}
+    ${items.length?items.map(item=>{
+      // 이동수단 감지
+      const transportMap=[
+        {k:'도보',i:'🚶',c:'#6B6860'},{k:'지하철',i:'🚇',c:'#185FA5'},
+        {k:'버스',i:'🚌',c:'#0F6E56'},{k:'기차',i:'🚆',c:'#534AB7'},
+        {k:'공항버스',i:'🚌',c:'#D85A30'},{k:'택시',i:'🚕',c:'#BA7517'},
+        {k:'케이블카',i:'🚡',c:'#0F6E56'}
+      ];
+      const note=item.note||'';
+      const transport=transportMap.find(t=>note.includes(t.k)||item.title.includes(t.k));
+      const durationMatch=note.match(/(\d+분|\d+시간)/);
+      const duration=durationMatch?durationMatch[0]:'';
+      return`<div class="card" style="${item.type==='이동'?'border-left:2px solid var(--border2)':''}">
+        <div style="display:grid;grid-template-columns:58px 1fr auto;gap:10px;align-items:start;">
+          <div>
+            <div class="time-b">${item.time}</div>
+            ${transport&&item.type==='이동'?`<div style="font-size:11px;color:${transport.c};margin-top:3px">${transport.i} ${duration}</div>`:''}
+          </div>
+          <div>
+            <div class="sch-title">${item.title}</div>
+            ${note?`<div class="sch-note">${note}</div>`:''}
+            <div class="sch-meta">
+              <span class="tag ${TYPE_TAG[item.type]||'tag-gray'}">${item.type}</span>
+              ${item.cost>0?`<span class="tag tag-amber">€${item.cost}</span>`:''}
+              ${item.link?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none">🔗 예약</a>`:''}
+            </div>
+          </div>
+          <button class="btn btn-sm btn-danger" onclick="delSchedule(${data.schedule.indexOf(item)})">✕</button>
+        </div>
+      </div>`;
+    }).join('')
+    :'<div class="empty-state"><div class="empty-icon">📋</div>일정을 추가해 주세요</div>'}`;
+}
+
+function buildMapHtml(places){
+  if(places.length===1){
+    const q=encodeURIComponent(places[0]);
+    const src=`https://maps.google.com/maps?q=${q}&output=embed&hl=ko`;
+    return`<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden;">
+      <div style="padding:10px 14px 8px;font-size:10.5px;color:var(--text3);letter-spacing:.04em;border-bottom:1px solid var(--border)">🗺️ 오늘의 동선</div>
+      <iframe src="${src}" width="100%" height="280" style="border:0;display:block;" allowfullscreen loading="lazy"></iframe>
+    </div>`;
+  }
+  const waypoints=places.slice(1,places.length-1).map(p=>encodeURIComponent(p)).join('|');
+  const origin=encodeURIComponent(places[0]);
+  const dest=encodeURIComponent(places[places.length-1]);
+  const waypointParam=waypoints?`&waypoints=${waypoints}`:'';
+  const mapsUrl=`https://www.google.com/maps/dir/${places.map(p=>encodeURIComponent(p)).join('/')}`;
+  const src=`https://maps.google.com/maps?saddr=${origin}&daddr=${dest}${waypointParam}&output=embed&hl=ko`;
+  return`<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden;">
+    <div style="padding:10px 14px 8px;font-size:10.5px;color:var(--text3);letter-spacing:.04em;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+      <span>🗺️ 오늘의 동선 (${places.length}곳)</span>
+      <a href="${mapsUrl}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none;">구글맵에서 열기 →</a>
+    </div>
+    <iframe src="${src}" width="100%" height="300" style="border:0;display:block;" allowfullscreen loading="lazy"></iframe>
+    <div style="padding:8px 14px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--border)">
+      ${places.map((p,i)=>`<span style="font-size:10.5px;color:var(--text2)"><span style="background:var(--accent);color:#fff;border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:9px;margin-right:3px">${i+1}</span>${p}</span>`).join('<span style="color:var(--text3);font-size:11px">→</span>')}
+    </div>
+  </div>`;
+}
+
+/* ════ 동선 ════ */
+function renderRoute(){
+  const grp={};
+  data.route.forEach(r=>{if(!grp[r.day])grp[r.day]=[];grp[r.day].push(r);});
+  if(!data.route.length){document.getElementById('route-content').innerHTML='<div class="empty-state"><div class="empty-icon">🗺️</div>동선을 추가해 주세요</div>';return;}
+  let html='';
+  DAYS.forEach((d,i)=>{
+    if(!grp[i])return;
+    html+=`<div class="r-day-hdr">${d.label}요일${d.sub?' · '+d.sub:''}</div><div class="card">`;
+    grp[i].forEach((r,idx)=>{
+      const hi=r.transport.includes('기차')||r.transport.includes('공항');
+      html+=`<div class="r-step">
+        <div class="r-dot ${hi?'hi':''}">${idx+1}</div>
+        <div style="flex:1;padding-top:3px">
+          <div style="font-weight:500;font-size:13px">${r.from} → ${r.to}</div>
+          <div style="font-size:11.5px;color:var(--text3)">${r.transport} · ${r.duration}${r.note?' · '+r.note:''}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="delRoute(${data.route.indexOf(r)})">✕</button>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  document.getElementById('route-content').innerHTML=html;
+}
+
+/* ════ 예산·지출 ════ */
+function renderBudget(){
+  const b=calcB();
+  const totalAll=(b.commonTotal+b.dayoungTotal+b.sooyeonTotal).toFixed(0);
+  const spentAll=(b.commonSpent+b.dayoungSpent+b.sooyeonSpent).toFixed(0);
+
+  // 상단 카드
+  document.getElementById('b-sum-grid').innerHTML=`
+    <div class="bm">
+      <div class="bm-label">🤝 공통 환전액</div>
+      <div class="bm-val c-common">€${b.commonBudget}</div>
+      <div class="bm-sub">= ₩${Math.round(b.commonKrwBudget/10000)}만 환전 · €1=₩${EUR_RATE}</div>
+      <div class="bm-sub" style="margin-top:2px">예정 €${b.commonTotal.toFixed(0)} (₩${Math.round(toKrw(b.commonTotal)/10000)}만) · 잔여 €${(b.commonBudget-b.commonTotal).toFixed(0)}</div>
+      <div class="prog"><div class="prog-fill" style="width:${b.commonBudget>0?Math.min(100,b.commonTotal/b.commonBudget*100).toFixed(0):0}%;background:var(--accent)"></div></div>
+    </div>
+    <div class="bm">
+      <div class="bm-label">👤 다영 개인</div>
+      <div class="bm-val c-dayoung">€${b.dayoungBudget}</div>
+      <div class="bm-sub">지출 €${b.dayoungSpent.toFixed(0)} · 잔여 €${(b.dayoungBudget-b.dayoungTotal).toFixed(0)}</div>
+      ${b.dayoungKrwTotal>0?`<div class="bm-sub" style="margin-top:2px">₩${Math.round(b.dayoungKrwSpent/10000)}만 지출</div>`:''}
+      <div class="prog"><div class="prog-fill" style="width:${b.dayoungBudget>0?Math.min(100,b.dayoungTotal/b.dayoungBudget*100).toFixed(0):0}%;background:var(--purple)"></div></div>
+    </div>
+    <div class="bm">
+      <div class="bm-label">👤 수연 개인</div>
+      <div class="bm-val c-sooyeon">€${b.sooyeonBudget}</div>
+      <div class="bm-sub">지출 €${b.sooyeonSpent.toFixed(0)} · 잔여 €${(b.sooyeonBudget-b.sooyeonTotal).toFixed(0)}</div>
+      ${b.sooyeonKrwTotal>0?`<div class="bm-sub" style="margin-top:2px">₩${Math.round(b.sooyeonKrwSpent/10000)}만 지출</div>`:''}
+      <div class="prog"><div class="prog-fill" style="width:${b.sooyeonBudget>0?Math.min(100,b.sooyeonTotal/b.sooyeonBudget*100).toFixed(0):0}%;background:var(--teal)"></div></div>
+    </div>
+    <div class="bm" style="border:1.5px solid var(--border2)">
+      <div class="bm-label">통합 (EUR→₩환산)</div>
+      <div class="bm-val" style="font-size:17px">₩${Math.round(b.totalPlannedKrw/10000)}만</div>
+      <div class="bm-sub" style="color:var(--accent)">집행 ₩${Math.round(b.totalSpentKrw/10000)}만</div>
+      <div class="bm-sub" style="color:${b.totalLeftKrw<0?'var(--red)':'var(--text2)'}">잔여 ${b.totalLeftKrw<0?'-':''}₩${Math.round(Math.abs(b.totalLeftKrw)/10000)}만</div>
+      <div class="prog" style="margin-top:6px"><div class="prog-fill" style="width:${b.totalBudgetKrw>0?Math.min(100,Math.round(b.totalSpentKrw/b.totalBudgetKrw*100)):0}%;background:var(--accent)"></div></div>
+    </div>
+    <div class="bm" style="border:1.5px solid var(--accent);grid-column:1/-1">
+      <div class="bm-label" style="color:var(--accent)">👤 1인 예상 총합</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px" class="per-person-grid">
+        <!-- 다영 -->
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="font-size:11px;font-weight:500;color:var(--purple);margin-bottom:6px">👤 다영</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">✈ 항공</span><span>₩${Math.round(b.flightKrw/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">🏠 숙소 (÷2)</span><span>₩${Math.round(b.hotelKrw/2/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">💶 공통EUR (÷2)</span><span>₩${Math.round(toKrw(b.commonTotal)/2/10000)}만 <span style="color:var(--text3);font-size:10px">(€${(b.commonTotal/2).toFixed(0)})</span></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">🏷 공통KRW (÷2)</span><span>₩${Math.round(b.commonKrwTotal/2/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--purple)">👤 개인EUR</span><span style="color:var(--purple)">₩${Math.round(toKrw(b.dayoungBudget)/10000)}만 <span style="color:var(--text3);font-size:10px">(€${b.dayoungBudget.toFixed(0)})</span></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--purple)">👤 개인KRW</span><span style="color:var(--purple)">₩${Math.round(b.dayoungKrwBudget/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">💵 USD</span><span>$${b.totalUsd.toFixed(2)} ≈ ₩${Math.round(b.totalUsdKrw/10000)}만</span></div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:6px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--accent)">합계 (USD 제외)</span>
+            <span style="font-size:18px;font-weight:700;color:var(--accent)">₩${Math.round(b.dayoungPersonKrw/10000)}만</span>
+          </div>
+          <div style="font-size:10px;color:var(--accent);text-align:right">집행 ₩${Math.round(b.dayoungPersonSpentKrw/10000)}만</div>
+        </div>
+        <!-- 수연 -->
+        <div style="background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="font-size:11px;font-weight:500;color:var(--teal);margin-bottom:6px">👤 수연</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">✈ 항공</span><span>₩${Math.round(b.flightKrw/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">🏠 숙소 (÷2)</span><span>₩${Math.round(b.hotelKrw/2/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">💶 공통EUR (÷2)</span><span>₩${Math.round(toKrw(b.commonTotal)/2/10000)}만 <span style="color:var(--text3);font-size:10px">(€${(b.commonTotal/2).toFixed(0)})</span></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">🏷 공통KRW (÷2)</span><span>₩${Math.round(b.commonKrwTotal/2/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--teal)">👤 개인EUR</span><span style="color:var(--teal)">₩${Math.round(toKrw(b.sooyeonBudget)/10000)}만 <span style="color:var(--text3);font-size:10px">(€${b.sooyeonBudget.toFixed(0)})</span></span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--teal)">👤 개인KRW</span><span style="color:var(--teal)">₩${Math.round(b.sooyeonKrwBudget/10000)}만</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:11.5px"><span style="color:var(--text3)">💵 USD</span><span>$${b.totalUsd.toFixed(2)} ≈ ₩${Math.round(b.totalUsdKrw/10000)}만</span></div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:6px;display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11px;color:var(--accent)">합계 (USD 제외)</span>
+            <span style="font-size:18px;font-weight:700;color:var(--accent)">₩${Math.round(b.sooyeonPersonKrw/10000)}만</span>
+          </div>
+          <div style="font-size:10px;color:var(--accent);text-align:right">집행 ₩${Math.round(b.sooyeonPersonSpentKrw/10000)}만</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 카테고리 요약
+  const catHtml=CATS.map(cat=>{
+    const tot=data.expenses.filter(e=>e.cat===cat).reduce((s,e)=>s+eur(e.eur),0);
+    const done=data.expenses.filter(e=>e.cat===cat&&e.status==='지출 완료').reduce((s,e)=>s+eur(e.eur),0);
+    if(!tot)return'';
+    const pct=Math.min(100,Math.round(done/tot*100));
+    return`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-top:1px solid var(--border)">
+      <div style="width:7px;height:7px;border-radius:50%;background:${CAT_COLOR[cat]};flex-shrink:0"></div>
+      <div style="flex:1;font-size:12.5px">${cat}</div>
+      <div style="font-size:12px;color:var(--text2);min-width:50px;text-align:right">€${tot.toFixed(0)}</div>
+      <div style="width:90px"><div class="prog"><div class="prog-fill" style="width:${pct}%;background:${CAT_COLOR[cat]}"></div></div></div>
+      <div style="font-size:10.5px;color:var(--text3);min-width:28px">${pct}%</div>
+    </div>`;
+  }).join('');
+  document.getElementById('cat-summary').innerHTML=catHtml||'<div style="font-size:12px;color:var(--text3);padding:6px 0">항목 없음</div>';
+
+  // 지출 리스트
+  let listHtml='';
+  ['공통','다영','수연'].forEach(who=>{
+    const whoExps=data.expenses.filter(e=>e.who===who);
+    if(!whoExps.length)return;
+    const whoTotal=whoExps.reduce((s,e)=>s+eur(e.eur),0);
+    listHtml+=`<div class="card"><div class="card-header">
+      <span class="who-b ${WHO_CLS[who]}">${who==='공통'?'🤝 공통':who==='다영'?'👤 다영':'👤 수연'}</span>
+      <span style="font-size:13px;font-weight:500;color:var(--text2)">€${whoTotal.toFixed(0)}</span>
+    </div>`;
+    CATS.forEach(cat=>{
+      const catItems=whoExps.filter(e=>e.cat===cat);
+      if(!catItems.length)return;
+      const catTot=catItems.reduce((s,e)=>s+eur(e.eur),0);
+      listHtml+=`<div class="divider"></div>
+        <div style="display:flex;align-items:center;gap:7px;padding:3px 0;margin-bottom:2px">
+          <div style="width:6px;height:6px;border-radius:50%;background:${CAT_COLOR[cat]}"></div>
+          <span style="font-size:11px;font-weight:500;color:${CAT_COLOR[cat]}">${cat}</span>
+          <span style="font-size:11px;color:var(--text3);margin-left:auto">€${catTot.toFixed(0)}</span>
+        </div>`;
+      catItems.forEach(exp=>{
+        const dayLabel=exp.day>=0&&exp.day<DAYS.length?DAYS[exp.day].label+'요일':'미정';
+        const realIdx=data.expenses.indexOf(exp);
+        const hasKrw=(+exp.krw||0)>0;
+        const hasEur=eur(exp.eur)>0;
+        const hasUsd=(+exp.usd||0)>0;
+        listHtml+=`<div class="exp-item">
+          <div style="flex:1;min-width:0">
+            <div class="exp-title">${exp.title}</div>
+            <div style="display:flex;gap:4px;margin-top:2px;flex-wrap:wrap;align-items:center">
+              <span class="tag tag-gray" style="font-size:10px">${dayLabel}</span>
+              ${exp.note?`<span style="font-size:10.5px;color:var(--text3)">${exp.note}</span>`:''}
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            ${hasEur?`<div class="exp-eur">€${eur(exp.eur).toFixed(0)}</div>`:''}
+            ${hasKrw?`<div style="font-size:12px;font-weight:500;color:var(--purple)">₩${(+exp.krw).toLocaleString()}</div>`:''}
+            ${hasUsd?`<div style="font-size:12px;font-weight:500;color:#0891B2">$${(+exp.usd).toFixed(2)}</div>`:''}
+            ${!hasEur&&!hasKrw&&!hasUsd?`<div class="exp-eur" style="color:var(--text3)">—</div>`:''}
+          </div>
+          <span class="tag ${exp.status==='지출 완료'?'tag-teal':'tag-gray'}" style="font-size:10px;white-space:nowrap;cursor:pointer;user-select:none" title="클릭으로 상태 전환" onclick="toggleStatus(${realIdx})">${exp.status}</span>
+          <button class="btn btn-sm" onclick="openEditExp(${realIdx})" style="font-size:11px;padding:3px 7px;">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="delExp(${realIdx})">✕</button>
+        </div>`;
+      });
+    });
+    listHtml+='</div>';
+  });
+  document.getElementById('budget-list').innerHTML=listHtml||'<div class="empty-state"><div class="empty-icon">💶</div>지출 항목을 추가해 주세요</div>';
+}
+
+/* ════ 음식점 ════ */
+function renderRestaurant(){
+  const filtered=restFilter==='전체'?data.restaurant:data.restaurant.filter(r=>r.type===restFilter);
+  const statusCls={'가고 싶음':'','예약 완료':'tag-purple','다녀옴':'tag-teal'};
+  document.getElementById('restaurant-content').innerHTML=filtered.length
+    ?filtered.map(r=>`
+      <div class="rest-card">
+        <div class="rest-name">${r.name}</div>
+        <div class="rest-info">📍 ${r.area} · ${r.price}</div>
+        ${r.note?`<div style="font-size:11px;color:var(--text2);margin-bottom:5px">${r.note}</div>`:''}
+        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          <span class="tag tag-gray">${r.type}</span>
+          <span class="tag ${statusCls[r.status]||''}" style="cursor:pointer;user-select:none" onclick="cycleStatus(${data.restaurant.indexOf(r)})">${r.status}</span>
+          ${r.link?`<a href="${r.link}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none">🔗 지도</a>`:''}
+          <button class="btn btn-sm btn-danger" style="margin-left:auto" onclick="delRest(${data.restaurant.indexOf(r)})">✕</button>
+        </div>
+      </div>`).join('')
+    :'<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">🍽️</div>맛집을 추가해 주세요</div>';
+}
+function filterRest(f,btn){
+  restFilter=f;
+  document.querySelectorAll('#rest-filters .btn').forEach(b=>b.style.background='');
+  btn.style.background='var(--surface2)';
+  renderRestaurant();
+}
+function cycleStatus(idx){
+  const order=['가고 싶음','예약 완료','다녀옴'];
+  const cur=data.restaurant[idx].status;
+  data.restaurant[idx].status=order[(order.indexOf(cur)+1)%order.length];
+  save();renderRestaurant();
+}
+
+/* ════ WHO selector ════ */
+function selectWho(who){
+  selectedWho=who;
+  const map={공통:'common',다영:'dayoung',수연:'sooyeon'};
+  ['공통','다영','수연'].forEach(w=>{
+    const el=document.getElementById('wo-'+map[w]);
+    el.className='who-opt'+(w===who?' sel-'+map[w]:'');
+  });
+}
+
+/* ════ Modals ════ */
+function openModal(type){
+  if(type==='setBudget'){
+    document.getElementById('cfg-common').value=data.cfg.common;
+    document.getElementById('cfg-commonKrw').value=data.cfg.commonKrw||0;
+    document.getElementById('cfg-dayoung').value=data.cfg.dayoung;
+    document.getElementById('cfg-dayoungKrw').value=data.cfg.dayoungKrw||0;
+    document.getElementById('cfg-sooyeon').value=data.cfg.sooyeon;
+    document.getElementById('cfg-sooyeonKrw').value=data.cfg.sooyeonKrw||0;
+    document.getElementById('cfg-hotelKrw').value=data.cfg.hotelKrw||0;
+    document.getElementById('cfg-flightKrw').value=data.cfg.flightKrw||0;
+  }
+  document.getElementById('modal-'+type).classList.add('open');
+}
+function closeModal(type){document.getElementById('modal-'+type).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});
+});
+
+function saveBudgetCfg(){
+  data.cfg.common=+document.getElementById('cfg-common').value||698;
+  data.cfg.commonKrw=+document.getElementById('cfg-commonKrw').value||0;
+  data.cfg.dayoung=+document.getElementById('cfg-dayoung').value||0;
+  data.cfg.dayoungKrw=+document.getElementById('cfg-dayoungKrw').value||0;
+  data.cfg.sooyeon=+document.getElementById('cfg-sooyeon').value||0;
+  data.cfg.sooyeonKrw=+document.getElementById('cfg-sooyeonKrw').value||0;
+  data.cfg.hotelKrw=+document.getElementById('cfg-hotelKrw').value||0;
+  data.cfg.flightKrw=+document.getElementById('cfg-flightKrw').value||0;
+  save();closeModal('setBudget');renderBar();renderBudget();
+}
+
+/* ════ Add / Delete ════ */
+function addSchedule(){
+  const it={
+    day:+document.getElementById('s-day').value,
+    time:document.getElementById('s-time').value,
+    type:document.getElementById('s-type').value,
+    title:document.getElementById('s-title').value.trim(),
+    place:document.getElementById('s-place').value.trim(),
+    note:document.getElementById('s-note').value.trim(),
+    cost:+document.getElementById('s-cost').value||0,
+    link:document.getElementById('s-link').value.trim(),
+  };
+  if(!it.title)return alert('장소/활동을 입력해 주세요');
+  data.schedule.push(it);save();closeModal('schedule');
+  currentDay=it.day;renderDayTabs();renderSchedule();renderBar();
+  ['s-title','s-place','s-note','s-cost','s-link'].forEach(id=>document.getElementById(id).value='');
+}
+function delSchedule(idx){if(!confirm('삭제할까요?'))return;data.schedule.splice(idx,1);save();renderSchedule();}
+
+function addRoute(){
+  const it={
+    day:+document.getElementById('r-day').value,
+    from:document.getElementById('r-from').value.trim(),
+    to:document.getElementById('r-to').value.trim(),
+    transport:document.getElementById('r-transport').value,
+    duration:document.getElementById('r-duration').value.trim(),
+    note:document.getElementById('r-note').value.trim(),
+  };
+  if(!it.from||!it.to)return alert('출발지와 도착지를 입력해 주세요');
+  data.route.push(it);save();closeModal('route');renderRoute();
+  ['r-from','r-to','r-duration','r-note'].forEach(id=>document.getElementById(id).value='');
+}
+function delRoute(idx){if(!confirm('삭제할까요?'))return;data.route.splice(idx,1);save();renderRoute();}
+
+function addBudget(){
+  const it={
+    who:selectedWho,
+    day:+document.getElementById('b-day').value,
+    cat:document.getElementById('b-cat').value,
+    title:document.getElementById('b-title').value.trim(),
+    eur:+document.getElementById('b-eur').value||0,
+    krw:+document.getElementById('b-krw').value||0,
+    usd:0,
+    status:document.getElementById('b-status').value,
+    note:document.getElementById('b-note').value.trim(),
+  };
+  if(!it.title)return alert('항목명을 입력해 주세요');
+  data.expenses.push(it);save();closeModal('budget');
+  renderBar();renderBudget();
+  ['b-title','b-eur','b-krw','b-note'].forEach(id=>document.getElementById(id).value='');
+  selectWho('공통');
+}
+let selectedEditWho='공통';
+function selectEditWho(who){
+  selectedEditWho=who;
+  const map={공통:'common',다영:'dayoung',수연:'sooyeon'};
+  ['공통','다영','수연'].forEach(w=>{
+    const el=document.getElementById('ewo-'+map[w]);
+    el.className='who-opt'+(w===who?' sel-'+map[w]:'');
+  });
+}
+function openEditExp(idx){
+  const e=data.expenses[idx];
+  document.getElementById('edit-idx').value=idx;
+  document.getElementById('edit-day').value=e.day??-1;
+  document.getElementById('edit-cat').value=e.cat;
+  document.getElementById('edit-title').value=e.title;
+  document.getElementById('edit-eur').value=e.eur||0;
+  document.getElementById('edit-krw').value=e.krw||0;
+  document.getElementById('edit-status').value=e.status;
+  document.getElementById('edit-note').value=e.note||'';
+  selectedEditWho=e.who;
+  const map={공통:'common',다영:'dayoung',수연:'sooyeon'};
+  ['공통','다영','수연'].forEach(w=>{
+    const el=document.getElementById('ewo-'+map[w]);
+    el.className='who-opt'+(w===e.who?' sel-'+map[w]:'');
+  });
+  openModal('editExp');
+}
+function saveEditExp(){
+  const idx=+document.getElementById('edit-idx').value;
+  data.expenses[idx]={
+    who:selectedEditWho,
+    day:+document.getElementById('edit-day').value,
+    cat:document.getElementById('edit-cat').value,
+    title:document.getElementById('edit-title').value.trim(),
+    eur:+document.getElementById('edit-eur').value||0,
+    krw:+document.getElementById('edit-krw').value||0,
+    status:document.getElementById('edit-status').value,
+    note:document.getElementById('edit-note').value.trim(),
+  };
+  save();closeModal('editExp');renderBar();renderBudget();
+}
+
+function delExp(idx){if(!confirm('삭제할까요?'))return;data.expenses.splice(idx,1);save();renderBar();renderBudget();}
+function toggleStatus(idx){
+  data.expenses[idx].status=data.expenses[idx].status==='지출 완료'?'예정':'지출 완료';
+  save();renderBar();renderBudget();
+}
+
+function addRestaurant(){
+  const it={
+    name:document.getElementById('re-name').value.trim(),
+    area:document.getElementById('re-area').value.trim(),
+    type:document.getElementById('re-type').value,
+    price:document.getElementById('re-price').value.trim(),
+    status:document.getElementById('re-status').value,
+    note:document.getElementById('re-note').value.trim(),
+    link:document.getElementById('re-link').value.trim(),
+  };
+  if(!it.name)return alert('음식점 이름을 입력해 주세요');
+  data.restaurant.push(it);save();closeModal('restaurant');renderRestaurant();
+  ['re-name','re-area','re-price','re-note','re-link'].forEach(id=>document.getElementById(id).value='');
+}
+function delRest(idx){if(!confirm('삭제할까요?'))return;data.restaurant.splice(idx,1);save();renderRestaurant();}
+
+/* ════ Nav ════ */
+function showSection(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.getElementById('section-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='route')renderRoute();
+  if(id==='budget')renderBudget();
+  if(id==='restaurant')renderRestaurant();
+}
+
+function saveMemo(day,val){
+  data.dayMemos[day]=val;
+  save();
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='barcelona-trip.json';
+  a.click();
+}
+
+function importData(e){
+  const file=e.target.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imported=JSON.parse(ev.target.result);
+      if(!imported.schedule||!imported.expenses)return alert('올바른 여행 플래너 파일이 아니에요.');
+      if(!confirm('현재 데이터를 불러온 파일로 교체할까요?'))return;
+      data=imported;
+      save();
+      renderBar();renderDayTabs();renderSchedule();
+      alert('불러오기 완료! 🎉');
+    }catch{alert('파일을 읽는 중 오류가 발생했어요.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+/* ════ Init ════ */
+renderBar();
+renderDayTabs();
+renderSchedule();
+fetchUsdRate();
+initFirebase();
+</script>
+</body>
+</html>
