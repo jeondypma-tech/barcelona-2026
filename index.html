@@ -314,9 +314,18 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="fg"><label class="fl">지도 장소명 (선택 · 지도에 핀 표시용)</label><input class="fc" type="text" id="s-place" placeholder="예) Sagrada Família, Barcelona"></div>
   <div class="fg"><label class="fl">메모</label><input class="fc" type="text" id="s-note" placeholder="예) 사전 예약 필수"></div>
   <div class="fr">
-    <div class="fg"><label class="fl">예상 비용 EUR (2인)</label><input class="fc" type="number" id="s-cost" placeholder="0"></div>
-    <div class="fg"><label class="fl">예약 링크</label><input class="fc" type="text" id="s-link" placeholder="https://..."></div>
+    <div class="fg"><label class="fl">비용 EUR (2인 합산)</label><input class="fc" type="number" id="s-cost" placeholder="0"></div>
+    <div class="fg"><label class="fl">비용 KRW (2인 합산)</label><input class="fc" type="number" id="s-cost-krw" placeholder="0"></div>
   </div>
+  <div class="fr">
+    <div class="fg"><label class="fl">지출 카테고리</label>
+      <select class="fc" id="s-cat"><option value="">— 지출 없음 —</option><option>교통</option><option>투어·입장료</option><option>식비</option><option>숙박</option><option>쇼핑</option><option>기타</option><option>USD</option></select>
+    </div>
+    <div class="fg"><label class="fl">지출 주체</label>
+      <select class="fc" id="s-who"><option value="공통">🤝 공통</option><option value="다영">👤 다영</option><option value="수연">👤 수연</option></select>
+    </div>
+  </div>
+  <div class="fg"><label class="fl">예약 링크</label><input class="fc" type="text" id="s-link" placeholder="https://..."></div>
   <div class="modal-actions"><button class="btn" onclick="closeModal('schedule')">취소</button><button class="btn btn-accent" onclick="addSchedule()">추가</button></div>
 </div></div>
 
@@ -385,20 +394,22 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text
   <div class="modal-title">예산 설정</div>
   <div style="font-size:11px;color:var(--text2);margin-bottom:12px;padding:8px 10px;background:var(--surface2);border-radius:var(--radius-sm);">EUR = 현지 환전액 · KRW = 한국에서 카드/현금으로 쓰는 금액 (투어비 등)</div>
   <div class="fr">
-      <div class="fr">
     <div class="fg"><label class="fl">🏠 숙소 전체 (KRW · 2인)</label><input class="fc" type="number" id="cfg-hotelKrw" placeholder="2702617"></div>
     <div class="fg"><label class="fl">✈ 항공 (KRW · 1인)</label><input class="fc" type="number" id="cfg-flightKrw" placeholder="1517900"></div>
   </div>
-  <div class="fg"><label class="fl">🤝 공통 환전액 (EUR)</label><input class="fc" type="number" id="cfg-common" placeholder="698"></div>
-    <div class="fg"><label class="fl">🤝 공통 원화 예산 (KRW)</label><input class="fc" type="number" id="cfg-commonKrw" placeholder="500000"></div>
+  <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:10px;font-size:11px;font-weight:600;color:var(--text2);">🤝 공통 걷은 돈</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">💶 EUR 걷은 돈 (환전액)</label><input class="fc" type="number" id="cfg-common" placeholder="698"></div>
+    <div class="fg"><label class="fl">💴 KRW 걷은 돈 (원화)</label><input class="fc" type="number" id="cfg-commonKrw" placeholder="180000"></div>
+  </div>
+  <div style="border-top:1px solid var(--border);margin:10px 0;padding-top:10px;font-size:11px;font-weight:600;color:var(--text2);">👤 개인 예산</div>
+  <div class="fr">
+    <div class="fg"><label class="fl">👤 다영 개인 (EUR)</label><input class="fc" type="number" id="cfg-dayoung" placeholder="200"></div>
+    <div class="fg"><label class="fl">👤 다영 개인 (KRW)</label><input class="fc" type="number" id="cfg-dayoungKrw" placeholder="300000"></div>
   </div>
   <div class="fr">
-    <div class="fg"><label class="fl">👤 다영 개인 (EUR)</label><input class="fc" type="number" id="cfg-dayoung" placeholder="0"></div>
-    <div class="fg"><label class="fl">👤 다영 개인 (KRW)</label><input class="fc" type="number" id="cfg-dayoungKrw" placeholder="0"></div>
-  </div>
-  <div class="fr">
-    <div class="fg"><label class="fl">👤 수연 개인 (EUR)</label><input class="fc" type="number" id="cfg-sooyeon" placeholder="0"></div>
-    <div class="fg"><label class="fl">👤 수연 개인 (KRW)</label><input class="fc" type="number" id="cfg-sooyeonKrw" placeholder="0"></div>
+    <div class="fg"><label class="fl">👤 수연 개인 (EUR)</label><input class="fc" type="number" id="cfg-sooyeon" placeholder="200"></div>
+    <div class="fg"><label class="fl">👤 수연 개인 (KRW)</label><input class="fc" type="number" id="cfg-sooyeonKrw" placeholder="300000"></div>
   </div>
   <div class="modal-actions">
     <button class="btn btn-danger btn-sm" onclick="if(confirm('모든 데이터를 초기화할까요?')){docRef.set(JSON.parse(JSON.stringify(DEFAULT))).then(()=>location.reload());}">🔄 초기화</button>
@@ -487,7 +498,7 @@ const STATUS_CLS={'가고 싶음':'','예약 완료':'tag-purple','다녀옴':'t
 
 /* ── 초기 데이터 ── */
 const DEFAULT={
-  cfg:{common:0,dayoung:200,sooyeon:200,commonKrw:0,dayoungKrw:300000,sooyeonKrw:300000,hotelKrw:2702617,flightKrw:1517900},
+  cfg:{common:698,dayoung:200,sooyeon:200,commonKrw:1200000,dayoungKrw:300000,sooyeonKrw:300000,hotelKrw:2702617,flightKrw:1517900},
   dayMemos:[
     '✈ 인천 11:50 출발 → 바르셀로나 19:10 도착\n🚌 아에로부스 A1 (T1이면 A1, T2면 A2)\n📍 Pl. Catalunya - Andana Central 하차 → 숙소 도보 8분\n🏨 숙소 도착 예상 20:50~21:00\n💡 왕복 티켓 미리 예약 → aerobcn.com\n💰 관광세+봉사료 USD 104.16 체크인 시 현장 지불\n🍽️ 저녁: 숙소 근처 핀초스+맥주\n🛒 장보기: 메르카도나 (초기 장보기 €20)',
     '🍽️ 커피+간식 · 보케리아 점심 · 집밥 저녁\n\n📍 보른 골목 베르무트 타임 (11:30~)\n📍 보케리아 시장 → 점심\n📍 바르셀로나 대성당\n📍 카탈루냐 음악당 (공연 예약 필요 palaumusica.cat)\n📍 산타카테리나 시장\n📍 개선문\n📍 피카소 미술관 뮤지엄샵\n🛒 장보기: 보케리아·산타카테리나 시장',
@@ -500,70 +511,70 @@ const DEFAULT={
   ],
   schedule:[
     // 토 도착
-    {day:0,time:'19:10',type:'이동',title:'바르셀로나 공항 도착',place:'Barcelona El Prat Airport',note:'아에로부스 A1 → Pl.Catalunya → 숙소 도보 8분',cost:14,link:''},
-    {day:0,time:'21:00',type:'식사',title:'숙소 근처 타파스 바',place:'Gran Via de les Corts Catalanes Barcelona',note:'첫날 가볍게 · 타파스+맥주',cost:50,link:''},
+    {day:0,time:'19:10',type:'이동',title:'바르셀로나 공항 도착',place:'Barcelona El Prat Airport',note:'아에로부스 A1 → Pl.Catalunya → 숙소 도보 8분',cost:14,link:'',cat:'교통',who:'공통'},
+    {day:0,time:'21:00',type:'식사',title:'숙소 근처 타파스 바',place:'Gran Via de les Corts Catalanes Barcelona',note:'첫날 가볍게 · 타파스+맥주',cost:50,link:'',cat:'식비',who:'공통'},
     // 일 고딕+보른
-    {day:1,time:'09:00',type:'식사',title:'아침 — 숙소',place:'',note:'전날 장봐둔 재료로',cost:7,link:''},
-    {day:1,time:'10:00',type:'관광',title:'베르무트 타임',place:'El Xampanyet Barcelona',note:'보른 골목 바 · 베르무트+핀초스 · 스페인 일요일 문화',cost:15,link:''},
+    {day:1,time:'09:00',type:'식사',title:'아침 — 숙소',place:'',note:'전날 장봐둔 재료로',cost:7,link:'',cat:'식비',who:'공통'},
+    {day:1,time:'10:00',type:'관광',title:'베르무트 타임',place:'El Xampanyet Barcelona',note:'보른 골목 바 · 베르무트+핀초스 · 스페인 일요일 문화',cost:15,link:'',cat:'투어·입장료',who:'공통'},
     {day:1,time:'11:30',type:'관광',title:'보케리아 시장',place:'La Boqueria Barcelona',note:'장보기 + 구경 · 소매치기 주의',cost:0,link:''},
-    {day:1,time:'13:00',type:'식사',title:'점심 — 보케리아 시장',place:'La Boqueria Barcelona',note:'생굴, 하몽, 주스',cost:30,link:''},
+    {day:1,time:'13:00',type:'식사',title:'점심 — 보케리아 시장',place:'La Boqueria Barcelona',note:'생굴, 하몽, 주스',cost:30,link:'',cat:'식비',who:'공통'},
     {day:1,time:'14:30',type:'관광',title:'바르셀로나 대성당',place:'Barcelona Cathedral',note:'고딕 지구 · 외부 무료',cost:0,link:''},
-    {day:1,time:'15:30',type:'관광',title:'카탈루냐 음악당',place:'Palau de la Musica Catalana Barcelona',note:'공연 예약 필수 · palaumusica.cat · 입장권 €18 or 공연 €20~25',cost:22,link:'https://www.palaumusica.cat'},
+    {day:1,time:'15:30',type:'관광',title:'카탈루냐 음악당',place:'Palau de la Musica Catalana Barcelona',note:'공연 예약 필수 · palaumusica.cat · 입장권 €18 or 공연 €20~25',cost:22,link:'https://www.palaumusica.cat',cat:'투어·입장료',who:'공통'},
     {day:1,time:'17:00',type:'관광',title:'산타카테리나 시장',place:'Mercat de Santa Caterina Barcelona',note:'보케리아보다 현지인 많음 · 지붕 모자이크 예쁨',cost:0,link:''},
     {day:1,time:'17:30',type:'관광',title:'개선문',place:'Arc de Triomf Barcelona',note:'도보 10분 · 포토스팟',cost:0,link:''},
     {day:1,time:'18:00',type:'관광',title:'피카소 미술관 뮤지엄샵',place:'Museu Picasso Barcelona',note:'내부 입장 아니어도 샵은 이용 가능',cost:0,link:''},
-    {day:1,time:'20:00',type:'식사',title:'저녁 — 집밥',place:'',note:'시장에서 사온 재료로',cost:18,link:''},
+    {day:1,time:'20:00',type:'식사',title:'저녁 — 집밥',place:'',note:'시장에서 사온 재료로',cost:18,link:'',cat:'식비',who:'공통'},
     // 월 가우디
-    {day:2,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'간단히 먹고 출발',cost:7,link:''},
+    {day:2,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'간단히 먹고 출발',cost:7,link:'',cat:'식비',who:'공통'},
     {day:2,time:'07:15',type:'이동',title:'카사밀라 도보 이동',place:'Casa Mila La Pedrera Barcelona',note:'숙소 → 카사밀라 도보 15분',cost:0,link:''},
-    {day:2,time:'07:30',type:'투어',title:'가우디 투어 — 우니코투어',place:'Casa Mila La Pedrera Barcelona',note:'전용버스 · 7시간 30분 · 입장료 €62/인 현장 현금',cost:62,link:'https://experiences.myrealtrip.com/products/3516980'},
-    {day:2,time:'08:00',type:'투어',title:'카사 밀라 내부',place:'Casa Mila La Pedrera Barcelona',note:'옥상 굴뚝 포토스팟',cost:0,link:''},
-    {day:2,time:'10:00',type:'투어',title:'카사 바트요 내부',place:'Casa Batllo Barcelona',note:'뼈의 집',cost:0,link:''},
-    {day:2,time:'11:30',type:'투어',title:'구엘 공원 내부',place:'Park Güell Barcelona',note:'모자이크 도마뱀 · 전망 최고',cost:0,link:''},
-    {day:2,time:'13:30',type:'식사',title:'점심 — 투어 중',place:'Sagrada Familia Barcelona',note:'사파 인근 · 가이드 안내',cost:30,link:''},
+    {day:2,time:'07:30',type:'투어',title:'가우디 투어 — 우니코투어',place:'Casa Mila La Pedrera Barcelona',note:'전용버스 · 7시간 30분 · 입장료 €62/인 현장 현금',cost:62,link:'https://experiences.myrealtrip.com/products/3516980',cat:'투어·입장료',who:'공통'},
+    {day:2,time:'08:00',type:'투어',title:'카사 밀라 내부',place:'Casa Mila La Pedrera Barcelona',note:'옥상 굴뚝 포토스팟',cost:0,link:'',cat:'투어·입장료',who:'공통'},
+    {day:2,time:'10:00',type:'투어',title:'카사 바트요 내부',place:'Casa Batllo Barcelona',note:'뼈의 집',cost:0,link:'',cat:'투어·입장료',who:'공통'},
+    {day:2,time:'11:30',type:'투어',title:'구엘 공원 내부',place:'Park Güell Barcelona',note:'모자이크 도마뱀 · 전망 최고',cost:0,link:'',cat:'투어·입장료',who:'공통'},
+    {day:2,time:'13:30',type:'식사',title:'점심 — 투어 중',place:'Sagrada Familia Barcelona',note:'사파 인근 · 가이드 안내',cost:30,link:'',cat:'식비',who:'공통'},
     {day:2,time:'14:45',type:'관광',title:'사그라다 파밀리아 입장',place:'Sagrada Familia Barcelona',note:'입장권 구매 완료 · 다영 €36(타워포함) / 수연 €34',cost:0,link:''},
     {day:2,time:'15:00',type:'관광',title:'사파 타워 관람',place:'Sagrada Familia Barcelona',note:'탄생 파사드 타워',cost:0,link:''},
-    {day:2,time:'17:00',type:'관광',title:'산파우 병원',place:'Hospital de Sant Pau Barcelona',note:'사파 도보 5분 · 가우디 임종 장소 · 유네스코 세계문화유산 · 입장 €16',cost:16,link:''},
+    {day:2,time:'17:00',type:'관광',title:'산파우 병원',place:'Hospital de Sant Pau Barcelona',note:'사파 도보 5분 · 가우디 임종 장소 · 유네스코 세계문화유산 · 입장 €16',cost:16,link:'',cat:'투어·입장료',who:'공통'},
     {day:2,time:'18:00',type:'이동',title:'숙소 귀환',place:'Gran Via de les Corts Catalanes Barcelona',note:'Mallorca-Marina → D50 버스 → 23분',cost:0,link:''},
-    {day:2,time:'19:30',type:'식사',title:'저녁 — 집밥',place:'',note:'',cost:18,link:''},
+    {day:2,time:'19:30',type:'식사',title:'저녁 — 집밥',place:'',note:'',cost:18,link:'',cat:'식비',who:'공통'},
     // 화 시체스
-    {day:3,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:7,link:''},
-    {day:3,time:'09:30',type:'이동',title:'시체스 출발',place:'Passeig de Gracia Station Barcelona',note:'R2 Sud · 40분 · Renfe 앱 예매',cost:10,link:''},
+    {day:3,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:7,link:'',cat:'식비',who:'공통'},
+    {day:3,time:'09:30',type:'이동',title:'시체스 출발',place:'Passeig de Gracia Station Barcelona',note:'R2 Sud · 40분 · Renfe 앱 예매',cost:10,link:'',cat:'교통',who:'공통'},
     {day:3,time:'11:00',type:'관광',title:'시체스 구시가 탐방',place:'Sitges Spain',note:'해변 + 골목 + 바',cost:0,link:''},
-    {day:3,time:'13:00',type:'식사',title:'점심 — 시체스 해산물',place:'Sitges Spain',note:'해변 앞 레스토랑',cost:50,link:''},
-    {day:3,time:'19:00',type:'식사',title:'저녁 — 시체스',place:'Sitges Spain',note:'',cost:50,link:''},
-    {day:3,time:'21:00',type:'이동',title:'바르셀로나 귀환',place:'Sitges Train Station',note:'R2 Sud',cost:10,link:''},
+    {day:3,time:'13:00',type:'식사',title:'점심 — 시체스 해산물',place:'Sitges Spain',note:'해변 앞 레스토랑',cost:50,link:'',cat:'식비',who:'공통'},
+    {day:3,time:'19:00',type:'식사',title:'저녁 — 시체스',place:'Sitges Spain',note:'',cost:50,link:'',cat:'식비',who:'공통'},
+    {day:3,time:'21:00',type:'이동',title:'바르셀로나 귀환',place:'Sitges Train Station',note:'R2 Sud',cost:10,link:'',cat:'교통',who:'공통'},
     // 수 해변+음악당
     {day:4,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:0,link:''},
     {day:4,time:'09:30',type:'관광',title:'바르셀로네타 해변',place:'Barceloneta Beach Barcelona',note:'오전 일찍 한산함',cost:0,link:''},
     {day:4,time:'11:30',type:'관광',title:'산타카테리나 시장',place:'Mercat de Santa Caterina Barcelona',note:'장보기',cost:0,link:''},
     {day:4,time:'12:30',type:'관광',title:'개선문',place:'Arc de Triomf Barcelona',note:'도보 10분',cost:0,link:''},
-    {day:4,time:'13:30',type:'식사',title:'점심 — 해변 근처',place:'Barceloneta Barcelona',note:'',cost:20,link:''},
+    {day:4,time:'13:30',type:'식사',title:'점심 — 해변 근처',place:'Barceloneta Barcelona',note:'',cost:20,link:'',cat:'식비',who:'공통'},
     {day:4,time:'15:00',type:'관광',title:'시우타델라 공원',place:'Parc de la Ciutadella Barcelona',note:'휴식',cost:0,link:''},
-    {day:4,time:'17:00',type:'관광',title:'해질녘 해변 맥주 🍺',place:'Barceloneta Beach Barcelona',note:'슈퍼에서 맥주 사서 모래사장에서 · 일몰 21:00~21:30',cost:5,link:''},
+    {day:4,time:'17:00',type:'관광',title:'해질녘 해변 맥주 🍺',place:'Barceloneta Beach Barcelona',note:'슈퍼에서 맥주 사서 모래사장에서 · 일몰 21:00~21:30',cost:5,link:'',cat:'투어·입장료',who:'공통'},
     {day:4,time:'19:30',type:'이동',title:'카탈루냐 음악당으로 이동',place:'Palau de la Musica Catalana Barcelona',note:'도보 or 지하철',cost:0,link:''},
-    {day:4,time:'20:00',type:'관광',title:'카탈루냐 음악당 공연 🎵',place:'Palau de la Musica Catalana Barcelona',note:'75분 · €35/인 · palaumusica.cat 예매 필요',cost:35,link:'https://www.palaumusica.cat'},
+    {day:4,time:'20:00',type:'관광',title:'카탈루냐 음악당 공연 🎵',place:'Palau de la Musica Catalana Barcelona',note:'75분 · €35/인 · palaumusica.cat 예매 필요',cost:35,link:'https://www.palaumusica.cat',cat:'투어·입장료',who:'공통'},
     {day:4,time:'21:30',type:'식사',title:'저녁 — 집밥',place:'',note:'공연 후 귀가',cost:0,link:''},
     // 목 토사데마르
     {day:5,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:0,link:''},
     {day:5,time:'09:30',type:'이동',title:'토사 데 마르 출발',place:'Estacio del Nord Barcelona',note:'숙소 → Casp-Pau Claris 도보 4분 → 54번 버스 → Estació del Nord → 아이다 버스 10:45 출발',cost:0,link:''},
     {day:5,time:'12:05',type:'관광',title:'토사 데 마르 도착',place:'Tossa de Mar Spain',note:'버스 1시간 20분 · 짐 보관 후 구경 시작',cost:0,link:''},
-    {day:5,time:'13:00',type:'식사',title:'점심 — 토사 데 마르',place:'Tossa de Mar Spain',note:'현지 로컬 식당',cost:30,link:''},
+    {day:5,time:'13:00',type:'식사',title:'점심 — 토사 데 마르',place:'Tossa de Mar Spain',note:'현지 로컬 식당',cost:30,link:'',cat:'식비',who:'공통'},
     {day:5,time:'14:00',type:'관광',title:'해변 물놀이 🏖️',place:'Tossa de Mar Beach Spain',note:'짐 보관 후 해변 · 전체 도보권',cost:0,link:''},
     {day:5,time:'17:30',type:'관광',title:'동네 산책',place:'Tossa de Mar Spain',note:'조용한 어촌 마을',cost:0,link:''},
     {day:5,time:'18:10',type:'이동',title:'바르셀로나 귀환',place:'Tossa de Mar Spain',note:'아이다 버스 18:10 출발 → Estació del Nord 19:30 도착',cost:0,link:''},
-    {day:5,time:'20:00',type:'식사',title:'저녁 — 귀환 후 외식',place:'Eixample Barcelona',note:'숙소 근처 동네 식당',cost:35,link:''},
+    {day:5,time:'20:00',type:'식사',title:'저녁 — 귀환 후 외식',place:'Eixample Barcelona',note:'숙소 근처 동네 식당',cost:35,link:'',cat:'식비',who:'공통'},
     // 금 쇼핑+에스파냐광장+야경
     {day:6,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'',cost:0,link:''},
     {day:6,time:'11:00',type:'쇼핑',title:'쇼핑 🛍️',place:'Portal de l Angel Barcelona',note:'포르탈 데 랑헬 · 기념품 · 개인 쇼핑',cost:0,link:''},
-    {day:6,time:'13:00',type:'식사',title:'점심',place:'Eixample Barcelona',note:'동네에서 가볍게',cost:20,link:''},
+    {day:6,time:'13:00',type:'식사',title:'점심',place:'Eixample Barcelona',note:'동네에서 가볍게',cost:20,link:'',cat:'식비',who:'공통'},
     {day:6,time:'16:00',type:'이동',title:'에스파냐 광장 이동',place:'Placa Espanya Barcelona',note:'지하철 L3 Espanya역 · T-Casual',cost:0,link:''},
     {day:6,time:'16:30',type:'관광',title:'MNAC 계단 뷰 감상',place:'Museu Nacional d Art de Catalunya Barcelona',note:'외관 무료 · 바르셀로나 전망 · 자리 잡기',cost:0,link:''},
     {day:6,time:'18:30',type:'관광',title:'마법의 분수 자리 잡기',place:'Font Magica Montjuic Barcelona',note:'15~30분 전 도착 권장 · MNAC 계단 추천',cost:0,link:''},
     {day:6,time:'19:00',type:'관광',title:'마법의 분수 쇼 🎇',place:'Font Magica Montjuic Barcelona',note:'무료 · 19:00·20:00 두 타임 · 15~20분/회',cost:0,link:''},
     {day:6,time:'20:00',type:'이동',title:'고딕 지구로 이동',place:'Barri Gotic Barcelona',note:'지하철 · 야경투어 미팅 포인트',cost:0,link:''},
-    {day:6,time:'20:30',type:'투어',title:'우니코 야경투어 🗺️',place:'Placa Reial Barcelona',note:'레이알광장→페란→대성당→비스베→산필립네리→왕의광장→산타마리아델마르 · 90~120분 · 유선이어폰 필요',cost:0,link:'https://experiences.myrealtrip.com/products/3438670'},
-    {day:6,time:'22:30',type:'식사',title:'마지막 만찬 🥂',place:'Eixample Barcelona',note:'야경투어 후 · 분위기 좋은 레스토랑',cost:50,link:''},
+    {day:6,time:'20:30',type:'투어',title:'우니코 야경투어 🗺️',place:'Placa Reial Barcelona',note:'레이알광장→페란→대성당→비스베→산필립네리→왕의광장→산타마리아델마르 · 90~120분 · 유선이어폰 필요',cost:0,link:'https://experiences.myrealtrip.com/products/3438670',cat:'투어·입장료',who:'공통'},
+    {day:6,time:'22:30',type:'식사',title:'마지막 만찬 🥂',place:'Eixample Barcelona',note:'야경투어 후 · 분위기 좋은 레스토랑',cost:50,link:'',cat:'식비',who:'공통'},
     // 토 출발
     {day:7,time:'07:00',type:'식사',title:'아침 — 숙소',place:'',note:'남은 재료로 간단히',cost:0,link:''},
     {day:7,time:'08:00',type:'관광',title:'벙커',place:'Bunkers del Carmel Barcelona',note:'아침 일찍 한산 · V17버스 or 지하철 Guinardó역 · 왕복 2회 T-Casual',cost:0,link:''},
@@ -603,15 +614,6 @@ const DEFAULT={
     {who:'공통',day:2,cat:'투어·입장료',title:'사그라다 파밀리아 입장 (2인)',eur:70,status:'지출 완료',note:'다영 €36(타워포함) + 수연 €34 · 공통 환전액에서 지불 · 14:45 입장'},
     {who:'공통',day:6,cat:'기타',title:'야경투어 (2인)',eur:0,krw:38284,status:'예정',note:'우니코 야경투어 · ₩19,142/인 × 2 · 50% 할인 · myrealtrip 3438670'},
     {who:'공통',day:4,cat:'투어·입장료',title:'카탈루냐 음악당 공연 (2인)',eur:70,status:'예정',note:'수요일 20:00 · 75분 · €35/인 · palaumusica.cat 예매 필요'},
-    // 식비 €410
-    {who:'공통',day:0,cat:'식비',title:'토 — 장보기+저녁',eur:55,status:'예정',note:'장보기 €20 (메르카도나) + 핀초스+맥주 €35'},
-    {who:'공통',day:1,cat:'식비',title:'일 — 커피+점심+저녁',eur:33,status:'예정',note:'커피+간식 €8 + 보케리아 점심 €25 + 집밥(장보기 포함)'},
-    {who:'공통',day:2,cat:'식비',title:'월 — 장보기+커피+점심+저녁',eur:48,status:'예정',note:'장보기 €15 + 커피+간식 €8 + 투어 중 점심 €25 + 집밥'},
-    {who:'공통',day:3,cat:'식비',title:'화 — 커피+점심+저녁 (시체스)',eur:80,status:'예정',note:'커피+간식 €5 + 시체스 점심 €40 + 시체스 저녁 €35'},
-    {who:'공통',day:4,cat:'식비',title:'수 — 커피+점심+집밥+해변맥주',eur:28,status:'예정',note:'커피+간식 €8 + 해변 점심 €20 + 집밥 + 맥주 🍺'},
-    {who:'공통',day:5,cat:'식비',title:'목 — 장보기+커피+점심+저녁 (토사데마르)',eur:85,status:'예정',note:'장보기 €15 + 커피+간식 €5 + 토사데마르 점심 €30 + 귀환 후 외식 €35'},
-    {who:'공통',day:6,cat:'식비',title:'금 — 커피+점심+저녁 (마지막만찬)',eur:78,status:'예정',note:'커피+간식 €8 + 가볍게 점심 €20 + 마지막 만찬 €50'},
-    {who:'공통',day:7,cat:'식비',title:'토 — 숙소 아침',eur:3,status:'예정',note:'남은 재료로 간단히'},
     {who:'다영',day:-1,cat:'쇼핑',title:'개인 쇼핑·기타',eur:0,status:'예정',note:''},
     {who:'수연',day:-1,cat:'쇼핑',title:'개인 쇼핑·기타',eur:0,status:'예정',note:''},
   ],
@@ -690,7 +692,17 @@ async function fetchUsdRate(){
 }
 
 function calcB(){
-  const e=data.expenses;
+  // schedule에서 cat 있는 항목을 expenses처럼 취급 (가상 expenses)
+  const scheduleExpenses=data.schedule.filter(s=>s.cat&&(s.cost>0||s.costKrw>0)).map(s=>({
+    who:s.who||'공통',
+    cat:s.cat,
+    eur:s.cost||0,
+    krw:s.costKrw||0,
+    usd:0,
+    status:s.status==='지출 완료'?'지출 완료':'예정',
+    _fromSchedule:true,
+  }));
+  const e=[...data.expenses, ...scheduleExpenses];
   const sumEur=(who,done)=>e.filter(x=>x.who===who&&(done?x.status==='지출 완료':true)).reduce((s,x)=>s+eur(x.eur),0);
   const sumKrw=(who,done)=>e.filter(x=>x.who===who&&(done?x.status==='지출 완료':true)).reduce((s,x)=>s+(+x.krw||0),0);
   const b={
@@ -925,7 +937,10 @@ function renderSchedule(){
             ${note?`<div class="sch-note">${note}</div>`:''}
             <div class="sch-meta">
               <span class="tag ${TYPE_TAG[item.type]||'tag-gray'}">${item.type}</span>
-              ${item.cost>0?`<span class="tag tag-amber">€${item.cost}</span>`:''}
+              ${item.cost>0?`<span class="tag tag-amber">€${item.cost} <span style="opacity:.7;font-size:9px">2인</span></span>`:''}
+              ${item.costKrw>0?`<span class="tag tag-amber">₩${Math.round((+item.costKrw)/10000)}만 <span style="opacity:.7;font-size:9px">2인</span></span>`:''}
+              ${item.cat?`<span class="tag" style="background:${CAT_COLOR[item.cat]||'#888'}18;color:${CAT_COLOR[item.cat]||'#888'};font-size:9.5px">${item.cat}</span>`:''}
+              ${item.cat&&item.who?`<span class="tag tag-gray" style="font-size:9.5px">${item.who==='공통'?'🤝':item.who==='다영'?'👤다영':'👤수연'}</span>`:''}
               ${item.link?`<a href="${item.link}" target="_blank" style="font-size:11px;color:var(--blue);text-decoration:none">🔗 예약</a>`:''}
             </div>
           </div>
@@ -1067,10 +1082,15 @@ function renderBudget(){
     </div>
   `;
 
-  // 카테고리 요약
+  // 카테고리 요약 (expenses + schedule 합산)
+  const schedExpForCat=data.schedule.filter(s=>s.cat&&(s.cost>0||s.costKrw>0));
   const catHtml=CATS.map(cat=>{
-    const tot=data.expenses.filter(e=>e.cat===cat).reduce((s,e)=>s+eur(e.eur),0);
-    const done=data.expenses.filter(e=>e.cat===cat&&e.status==='지출 완료').reduce((s,e)=>s+eur(e.eur),0);
+    const expTot=data.expenses.filter(e=>e.cat===cat).reduce((s,e)=>s+eur(e.eur),0);
+    const schTot=schedExpForCat.filter(s=>s.cat===cat).reduce((s,x)=>s+(+x.cost||0),0);
+    const tot=expTot+schTot;
+    const expDone=data.expenses.filter(e=>e.cat===cat&&e.status==='지출 완료').reduce((s,e)=>s+eur(e.eur),0);
+    const schDone=schedExpForCat.filter(s=>s.cat===cat&&s.status==='지출 완료').reduce((s,x)=>s+(+x.cost||0),0);
+    const done=expDone+schDone;
     if(!tot)return'';
     const pct=Math.min(100,Math.round(done/tot*100));
     return`<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-top:1px solid var(--border)">
@@ -1217,12 +1237,15 @@ function addSchedule(){
     place:document.getElementById('s-place').value.trim(),
     note:document.getElementById('s-note').value.trim(),
     cost:+document.getElementById('s-cost').value||0,
+    costKrw:+document.getElementById('s-cost-krw').value||0,
+    cat:document.getElementById('s-cat').value||'',
+    who:document.getElementById('s-who').value||'공통',
     link:document.getElementById('s-link').value.trim(),
   };
   if(!it.title)return alert('장소/활동을 입력해 주세요');
   data.schedule.push(it);save();closeModal('schedule');
   currentDay=it.day;renderDayTabs();renderSchedule();renderBar();
-  ['s-title','s-place','s-note','s-cost','s-link'].forEach(id=>document.getElementById(id).value='');
+  ['s-title','s-place','s-note','s-cost','s-cost-krw','s-link'].forEach(id=>document.getElementById(id).value='');
 }
 function delSchedule(idx){if(!confirm('삭제할까요?'))return;data.schedule.splice(idx,1);save();renderSchedule();}
 
