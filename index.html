@@ -1393,7 +1393,8 @@ function delExchange(idx){
   data.cfg.common=data.exchanges.reduce((s,x)=>s+x.eur,0);
   data.cfg.commonKrw=data.exchanges.reduce((s,x)=>s+x.krw,0);
   save();openModal('setBudget');renderBar();renderBudget();
-}if(!confirm('삭제할까요?'))return;data.schedule.splice(idx,1);save();renderSchedule();}
+}
+function delSchedule(idx){if(!confirm('삭제할까요?'))return;data.schedule.splice(idx,1);save();renderSchedule();}
 
 function addRoute(){
   const it={
